@@ -8,6 +8,7 @@ interface ArticleDisplayProps {
     excerpt: string;
     content: string;
     featuredImage?: string;
+    images?: Array<{ url: string; caption?: string }>;
     author?: { name: string; bio: string; photo?: string; _id?: string };
     category?: { name: string; slug: string };
     publishedAt: string;
@@ -101,6 +102,31 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
             style={{ fontSize: 16, lineHeight: 1.9, color: '#2a2a2a', marginBottom: 28 }}
             dangerouslySetInnerHTML={{ __html: article.content }}
           />
+
+          {/* Article Images Gallery */}
+          {article.images && article.images.length > 0 && (
+            <div style={{ marginBottom: 28 }}>
+              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#1a1a1a', marginBottom: 16, letterSpacing: 0.5 }}>
+                Gallery
+              </h3>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+                {article.images.map((img, idx) => (
+                  <div key={idx} style={{ borderRadius: 4, overflow: 'hidden', border: '1px solid #e8e2d4' }}>
+                    <img
+                      src={img.url}
+                      alt={img.caption || `Gallery image ${idx + 1}`}
+                      style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }}
+                    />
+                    {img.caption && (
+                      <div style={{ padding: 12, background: '#f5f2eb', fontSize: 13, color: '#555', lineHeight: 1.4 }}>
+                        {img.caption}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Another Ad */}
           <div style={{ background: '#f5f2eb', borderRadius: 4, padding: 20, marginBottom: 28, textAlign: 'center', border: '1px dashed #c5bfb2' }}>

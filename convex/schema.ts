@@ -27,6 +27,11 @@ export default defineSchema({
     excerpt: v.string(),
     featuredImageId: v.optional(v.id('_storage')),
     featuredImage: v.optional(v.string()),
+    images: v.optional(v.array(v.object({
+      storageId: v.id('_storage'),
+      url: v.string(),
+      caption: v.optional(v.string()),
+    }))),
     categoryId: v.id('categories'),
     authorId: v.id('authors'),
     publishedAt: v.optional(v.string()),

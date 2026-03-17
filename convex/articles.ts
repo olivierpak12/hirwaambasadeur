@@ -9,18 +9,20 @@ async function enrichArticle(ctx: any, article: any) {
   // Handle both new (featuredImageId) and old (featuredImage) formats
   let featuredImage = undefined;
   
-  // If we have a storage ID, get the URL from it
-  if (article.featuredImageId) {
+  // Prefer the stored image URL (most reliable)
+  if (article.featuredImage) {
+    featuredImage = article.featuredImage;
+  } 
+  // Try to get the URL from storage ID if no stored URL
+  else if (article.featuredImageId) {
     try {
-      featuredImage = await ctx.storage.getUrl(article.featuredImageId);
+      const url = await ctx.storage.getUrl(article.featuredImageId);
+      if (url) {
+        featuredImage = url;
+      }
     } catch (e) {
       console.error('Failed to get storage URL:', e);
-      // If storage ID fails, use the stored URL if available
-      featuredImage = article.featuredImage;
     }
-  } else if (article.featuredImage) {
-    // Use stored URL directly
-    featuredImage = article.featuredImage;
   }
   
   return { 
@@ -145,6 +147,12 @@ export const createArticle = mutation({
     content: v.string(),
     excerpt: v.string(),
     featuredImageId: v.optional(v.id('_storage')),
+    featuredImage: v.optional(v.string()),
+    images: v.optional(v.array(v.object({
+      storageId: v.id('_storage'),
+      url: v.string(),
+      caption: v.optional(v.string()),
+    }))),
     categoryId: v.id('categories'),
     authorId: v.id('authors'),
     status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
@@ -153,11 +161,13 @@ export const createArticle = mutation({
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
-    const { featuredImageId, ...articleData } = args;
+    const { featuredImageId, featuredImage, images, ...articleData } = args;
     
     return await ctx.db.insert('articles', {
       ...articleData,
       featuredImageId,
+      featuredImage: featuredImage || undefined,
+      images: images && images.length > 0 ? images : undefined,
       publishedAt: args.status === 'published' ? now : undefined,
       updatedAt: now,
       views: 0,

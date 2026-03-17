@@ -22,13 +22,11 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
   const handleFile = useCallback(async (file: File) => {
     if (!file) return;
 
-    // Validate file type
     if (!file.type.startsWith('image/')) {
       setError('Please select an image file (JPG, PNG, WebP, etc.)');
       return;
     }
 
-    // Validate file size (max 10MB)
     if (file.size > 10 * 1024 * 1024) {
       setError('Image must be smaller than 10MB');
       return;
@@ -37,15 +35,13 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
     setError(null);
     setUploading(true);
 
-    // Show local preview immediately
+    // ✅ Local preview only for UI display — never saved to DB
     const localUrl = URL.createObjectURL(file);
     setPreview(localUrl);
 
     try {
-      // Step 1: Get upload URL from Convex
       const uploadUrl = await generateUploadUrl();
 
-      // Step 2: Upload file directly to Convex storage
       const response = await fetch(uploadUrl, {
         method: 'POST',
         headers: { 'Content-Type': file.type },
@@ -56,8 +52,7 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
 
       const { storageId } = await response.json();
 
-      // Pass the local preview URL and the storage ID to parent
-      // The permanent URL will be fetched from queries when displaying
+      // ✅ Pass the local preview URL for immediate display + storageId for DB storage
       onUploadComplete(localUrl, storageId);
     } catch (err) {
       setError('Upload failed. Please try again.');
@@ -104,7 +99,6 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
       </label>
 
       {preview ? (
-        /* Preview state */
         <div style={{ position: 'relative', borderRadius: 4, overflow: 'hidden', border: '0.5px solid #2a4a35' }}>
           <img
             src={preview}
@@ -125,9 +119,7 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
             </div>
           )}
           {!uploading && (
-            <div style={{
-              position: 'absolute', top: 10, right: 10, display: 'flex', gap: 8,
-            }}>
+            <div style={{ position: 'absolute', top: 10, right: 10, display: 'flex', gap: 8 }}>
               <button
                 onClick={() => fileInputRef.current?.click()}
                 style={{
@@ -135,23 +127,18 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
                   padding: '6px 12px', borderRadius: 3, fontSize: 11, cursor: 'pointer',
                   letterSpacing: 1,
                 }}
-              >
-                Change
-              </button>
+              >Change</button>
               <button
                 onClick={handleRemove}
                 style={{
                   background: '#0f2318', color: '#a0b8a8', border: '0.5px solid #2a4a35',
                   padding: '6px 12px', borderRadius: 3, fontSize: 11, cursor: 'pointer',
                 }}
-              >
-                Remove
-              </button>
+              >Remove</button>
             </div>
           )}
         </div>
       ) : (
-        /* Drop zone */
         <div
           onClick={() => fileInputRef.current?.click()}
           onDrop={handleDrop}
@@ -159,11 +146,8 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
           onDragLeave={handleDragLeave}
           style={{
             border: `2px dashed ${dragOver ? '#c9a84c' : '#2a4a35'}`,
-            borderRadius: 4,
-            padding: '40px 20px',
-            textAlign: 'center',
-            cursor: 'pointer',
-            background: dragOver ? '#1a3d28' : '#0f2318',
+            borderRadius: 4, padding: '40px 20px', textAlign: 'center',
+            cursor: 'pointer', background: dragOver ? '#1a3d28' : '#0f2318',
             transition: 'all 0.15s',
           }}
         >

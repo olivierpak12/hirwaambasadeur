@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import ImageUpload from '@/components/common/ImageUpload';
+import MultiImageUpload from '@/components/common/MultiImageUpload';
 
 const CATEGORIES = ['Politics', 'Business', 'Technology', 'Health', 'Sports', 'Entertainment', 'Africa', 'World'];
 
@@ -78,18 +79,19 @@ export default function CreateArticlePage() {
   const createArticle = useMutation(api.articles.createArticle);
   const createAuthor = useMutation(api.authors.createAuthor);
 
-  const [title, setTitle]               = useState('');
-  const [excerpt, setExcerpt]           = useState('');
-  const [content, setContent]           = useState('');
-  const [category, setCategory]         = useState('');
-  const [tags, setTags]                 = useState<string[]>([]);
-  const [tagInput, setTagInput]         = useState('');
+  const [title, setTitle]                     = useState('');
+  const [excerpt, setExcerpt]                 = useState('');
+  const [content, setContent]                 = useState('');
+  const [category, setCategory]               = useState('');
+  const [tags, setTags]                       = useState<string[]>([]);
+  const [tagInput, setTagInput]               = useState('');
   const [featuredImage, setFeaturedImage]     = useState('');
   const [featuredImageId, setFeaturedImageId] = useState('');
-  const [status, setStatus]             = useState('draft');
-  const [saving, setSaving]             = useState(false);
-  const [saved, setSaved]               = useState(false);
-  const [error, setError]               = useState('');
+  const [images, setImages] = useState<Array<{ url: string; storageId: string; caption: string }>>([]);
+  const [status, setStatus]                   = useState('draft');
+  const [saving, setSaving]                   = useState(false);
+  const [saved, setSaved]                     = useState(false);
+  const [error, setError]                     = useState('');
   const contentRef = useRef<HTMLTextAreaElement>(null);
 
   const wordCount  = content.trim() ? content.trim().split(/\s+/).length : 0;
@@ -158,6 +160,12 @@ export default function CreateArticlePage() {
         content,
         excerpt,
         featuredImageId: featuredImageId ? (featuredImageId as any) : undefined,
+        featuredImage: featuredImage || undefined,
+        images: images.length > 0 ? images.map(img => ({
+          storageId: img.storageId as any,
+          url: img.url,
+          caption: img.caption,
+        })) : undefined,
         categoryId: selectedCategory._id,
         authorId,
         status: status as 'draft' | 'published' | 'archived',
@@ -177,6 +185,7 @@ export default function CreateArticlePage() {
       setTagInput('');
       setFeaturedImage('');
       setFeaturedImageId('');
+      setImages([]);
       setStatus('draft');
     } catch (err) {
       setError('Failed to publish. Please try again.');
