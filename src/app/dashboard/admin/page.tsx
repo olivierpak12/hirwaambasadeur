@@ -31,7 +31,7 @@ type BtnProps = {
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type TabId = 'overview' | 'articles' | 'submissions' | 'permissions' | 'authors' | 'categories' | 'messages' | 'ads' | 'hiring';
+type TabId = 'overview' | 'articles' | 'submissions' | 'permissions' | 'authors' | 'categories' | 'messages' | 'files' | 'ads' | 'hiring';
 
 interface Tab { id: TabId; label: string; icon: React.ReactNode; badge?: number }
 
@@ -310,11 +310,36 @@ function OverviewPanel() {
 function ArticlesPanel() {
   const articles = useQuery(api.articles.getAllArticles) ?? [];
   const [search, setSearch] = useState('');
+  const [localArticles, setLocalArticles] = useState<any[]>([]);
+  
   const filteredArticles = useMemo(() => {
     const query = search.trim().toLowerCase();
-    if (!query) return articles;
-    return articles.filter((a: any) => a.title.toLowerCase().includes(query));
-  }, [articles, search]);
+    const displayArticles = localArticles.length > 0 ? localArticles : articles;
+    if (!query) return displayArticles;
+    return displayArticles.filter((a: any) => a.title.toLowerCase().includes(query));
+  }, [articles, localArticles, search]);
+
+  const handlePublish = (articleId: string) => {
+    setLocalArticles(prev => {
+      const updated = prev.length > 0 ? prev : articles;
+      return updated.map((a: any) => 
+        a._id === articleId 
+          ? { ...a, status: 'published', publishedAt: new Date().toISOString() }
+          : a
+      );
+    });
+  };
+
+  const handleUnpublish = (articleId: string) => {
+    setLocalArticles(prev => {
+      const updated = prev.length > 0 ? prev : articles;
+      return updated.map((a: any) => 
+        a._id === articleId 
+          ? { ...a, status: 'draft', publishedAt: null }
+          : a
+      );
+    });
+  };
 
   return (
     <Panel
@@ -328,7 +353,7 @@ function ArticlesPanel() {
       }
     >
       <Table
-        cols={['Title', 'Author', 'Category', 'Status', 'Views', 'Published']}
+        cols={['Title', 'Author', 'Category', 'Status', 'Views', 'Published', 'Actions']}
         rows={filteredArticles.map((a: any) => [
           <span key="title" style={{ fontWeight: 600, color: '#d0c8a8', maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }} title={a.title}>{a.title}</span>,
           <span key="author">{a.author?.name ?? 'Unknown'}</span>,
@@ -336,6 +361,15 @@ function ArticlesPanel() {
           <Badge key="status" status={a.status ?? 'draft'} />,
           <span key="views">{a.views ? a.views.toLocaleString() : '—'}</span>,
           <span key="published">{a.publishedAt ? new Date(a.publishedAt).toLocaleDateString() : '—'}</span>,
+          <div key="actions" style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+            {(a.status === 'draft' || a.status === 'pending') && (
+              <Btn variant="success" size="sm" onClick={() => handlePublish(a._id)}>Publish</Btn>
+            )}
+            {a.status === 'published' && (
+              <Btn variant="danger" size="sm" onClick={() => handleUnpublish(a._id)}>Unpublish</Btn>
+            )}
+            <Btn variant="ghost" size="sm">{Icon.edit}</Btn>
+          </div>,
         ])}
       />
     </Panel>
@@ -666,6 +700,100 @@ function MessagesPanel() {
   );
 }
 
+// ─── Files/Media Panel ────────────────────────────────────────────────────────
+function FilesPanel() {
+  const [files, setFiles] = useState([
+    { _id: '1', name: 'breaking-news-header.jpg', size: '2.4 MB', type: 'Image', uploadedAt: '2026-03-15', usedIn: '5 articles', status: 'active' },
+    { _id: '2', name: 'featured-article-image.png', size: '1.8 MB', type: 'Image', uploadedAt: '2026-03-14', usedIn: '3 articles', status: 'active' },
+    { _id: '3', name: 'author-profile-pic.jpg', size: '0.5 MB', type: 'Image', uploadedAt: '2026-03-12', usedIn: '2 articles', status: 'active' },
+    { _id: '4', name: 'archive-2025.pdf', size: '15.2 MB', type: 'Document', uploadedAt: '2026-01-10', usedIn: 'Not used', status: 'archived' },
+  ]);
+  const [sortBy, setSortBy] = useState('uploadedAt');
+  const [showForm, setShowForm] = useState(false);
+  const [uploadForm, setUploadForm] = useState({ name: '', type: 'Image' });
+
+  const sortedFiles = useMemo(() => {
+    const sorted = [...files];
+    if (sortBy === 'uploadedAt') sorted.sort((a, b) => new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime());
+    if (sortBy === 'name') sorted.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortBy === 'size') sorted.sort((a, b) => parseFloat(b.size) - parseFloat(a.size));
+    return sorted;
+  }, [files, sortBy]);
+
+  const handleUpload = () => {
+    if (!uploadForm.name) return;
+    const newFile = {
+      _id: String(files.length + 1),
+      name: uploadForm.name,
+      size: '1.0 MB',
+      type: uploadForm.type,
+      uploadedAt: new Date().toLocaleDateString(),
+      usedIn: 'Not used',
+      status: 'active',
+    };
+    setFiles([newFile, ...files]);
+    setUploadForm({ name: '', type: 'Image' });
+    setShowForm(false);
+  };
+
+  const handleDelete = (fileId: string) => {
+    setFiles(files.filter(f => f._id !== fileId));
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+      {/* Stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+        {[
+          { label: 'Total Files', value: files.length, color: '#c9a84c' },
+          { label: 'Active', value: files.filter(f => f.status === 'active').length, color: '#4aaa6a' },
+          { label: 'Storage Used', value: '31.5 GB', color: '#a06ae0' },
+        ].map(s => (
+          <div key={s.label} style={{ background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(201,168,76,0.08)', borderRadius: 6, padding: '14px 16px', textAlign: 'center' }}>
+            <div style={{ fontFamily: 'Georgia, serif', fontSize: 24, color: s.color, fontWeight: 700, lineHeight: 1 }}>{s.value}</div>
+            <div style={{ fontSize: 10, color: '#4a6a5a', marginTop: 4, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <Panel
+        title="Media Files"
+        action={
+          <div style={{ display: 'flex', gap: 8 }}>
+            <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)} options={['uploadedAt', 'name', 'size']} placeholder="Sort by…" />
+            <Btn onClick={() => setShowForm(s => !s)} variant={showForm ? 'muted' : 'primary'} size="sm">{showForm ? <>{Icon.x} Cancel</> : <>{Icon.plus} Upload File</>}</Btn>
+          </div>
+        }
+      >
+        {showForm && (
+          <FormOverlay title="Upload New File" onClose={() => setShowForm(false)}>
+            <div className="form-grid-2" style={{ gap: 10, marginBottom: 12 }}>
+              <Field label="File Name" required><Input value={uploadForm.name} onChange={(e) => setUploadForm(p => ({ ...p, name: e.target.value }))} placeholder="filename.jpg…" /></Field>
+              <Field label="File Type" required><Select value={uploadForm.type} onChange={(e) => setUploadForm(p => ({ ...p, type: e.target.value }))} options={['Image', 'Document', 'Video', 'Audio']} placeholder="Select type…" /></Field>
+            </div>
+            <Btn onClick={handleUpload} variant="primary" size="md">{Icon.check} Upload File</Btn>
+          </FormOverlay>
+        )}
+        <Table
+          cols={['File Name', 'Type', 'Size', 'Uploaded', 'Used In', 'Status', 'Actions']}
+          rows={sortedFiles.map(f => [
+            <span key="name" style={{ fontWeight: 600, color: '#d0c8a8', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }} title={f.name}>{f.name}</span>,
+            <span key="type">{f.type}</span>,
+            <span key="size">{f.size}</span>,
+            <span key="uploadedAt">{f.uploadedAt}</span>,
+            <span key="usedIn" style={{ fontSize: 12, color: f.usedIn === 'Not used' ? '#6a8a7a' : '#d0c8a8' }}>{f.usedIn}</span>,
+            <Badge key="status" status={f.status} />,
+            <div key="actions" style={{ display: 'flex', gap: 4 }}>
+              <Btn variant="ghost" size="sm">{Icon.eye}</Btn>
+              <Btn variant="danger" size="sm" onClick={() => handleDelete(f._id)}>{Icon.trash}</Btn>
+            </div>,
+          ])}
+        />
+      </Panel>
+    </div>
+  );
+}
+
 // ─── Ads Panel ────────────────────────────────────────────────────────────────
 function AdsPanel() {
   const [ads, setAds] = useState([
@@ -799,6 +927,7 @@ const TABS: Tab[] = [
   { id: 'authors',      label: 'Authors',      icon: Icon.users },
   { id: 'categories',   label: 'Categories',   icon: Icon.folder },
   { id: 'messages',     label: 'Messages',     icon: Icon.chat,     badge: 2 },
+  { id: 'files',        label: 'Files',        icon: Icon.folder },
   { id: 'hiring',       label: 'Hiring',      icon: Icon.briefcase },
   { id: 'ads',          label: 'Ads',          icon: Icon.ads },
 ];
@@ -931,8 +1060,9 @@ export default function AdminDashboard() {
           {active === 'permissions' && <PermissionsPanel />}
           {active === 'authors'     && <AuthorsPanel />}
           {active === 'categories'  && <CategoriesPanel />}
-          {active === 'hiring'      && <HiringPanel />}
           {active === 'messages'    && <MessagesPanel />}
+          {active === 'files'       && <FilesPanel />}
+          {active === 'hiring'      && <HiringPanel />}
           {active === 'ads'         && <AdsPanel />}
         </main>
       </div>
