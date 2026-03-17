@@ -321,7 +321,7 @@ function ArticlesPanel() {
   }, [articles, localArticles, search]);
 
   const handlePublish = async (articleId: string) => {
-    await updateArticleStatus({ articleId, status: 'published' });
+    await updateArticleStatus({ articleId: articleId as any, status: 'published' });
     setLocalArticles(prev => {
       const updated = prev.length > 0 ? prev : articles;
       return updated.map((a: any) => 
@@ -333,12 +333,12 @@ function ArticlesPanel() {
   };
 
   const handleUnpublish = async (articleId: string) => {
-    await updateArticleStatus({ articleId, status: 'draft' });
+    await updateArticleStatus({ articleId: articleId as any, status: 'draft' });
     setLocalArticles(prev => {
       const updated = prev.length > 0 ? prev : articles;
       return updated.map((a: any) => 
         a._id === articleId 
-          ? { ...a, status: 'draft', publishedAt: null }
+          ? { ...a, status: 'draft', publishedAt: undefined }
           : a
       );
     });

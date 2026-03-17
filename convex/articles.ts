@@ -154,7 +154,7 @@ export const createArticle = mutation({
     return await ctx.db.insert('articles', {
       ...articleData,
       featuredImageId,
-      publishedAt: args.status === 'published' ? now : null,
+      publishedAt: args.status === 'published' ? now : undefined,
       updatedAt: now,
       views: 0,
     });
@@ -170,7 +170,7 @@ export const updateArticleStatus = mutation({
     const now = new Date().toISOString();
     await ctx.db.patch(articleId, {
       status,
-      publishedAt: status === 'published' ? now : null,
+      publishedAt: status === 'published' ? now : undefined,
       updatedAt: now,
     });
     return articleId;

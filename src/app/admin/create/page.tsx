@@ -157,7 +157,7 @@ export default function CreateArticlePage() {
         slug,
         content,
         excerpt,
-        featuredImageId: featuredImageId || undefined,
+        featuredImageId: featuredImageId ? (featuredImageId as any) : undefined,
         categoryId: selectedCategory._id,
         authorId,
         status: status as 'draft' | 'published' | 'archived',
