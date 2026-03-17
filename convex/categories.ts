@@ -46,6 +46,33 @@ export const updateCategory = mutation({
   },
 });
 
+export const seedCategories = mutation({
+  handler: async (ctx) => {
+    const existing = await ctx.db.query('categories').collect();
+    if (existing.length > 0) return; // Already seeded
+
+    const categories = [
+      { name: 'Politics', slug: 'politics', description: 'Political news and analysis' },
+      { name: 'Business', slug: 'business', description: 'Business and economic news' },
+      { name: 'Technology', slug: 'technology', description: 'Technology and innovation news' },
+      { name: 'Health', slug: 'health', description: 'Health and medical news' },
+      { name: 'Sports', slug: 'sports', description: 'Sports news and updates' },
+      { name: 'Entertainment', slug: 'entertainment', description: 'Entertainment and celebrity news' },
+      { name: 'Africa', slug: 'africa', description: 'News from Africa' },
+      { name: 'World', slug: 'world', description: 'International news' },
+    ];
+
+    for (const cat of categories) {
+      await ctx.db.insert('categories', {
+        ...cat,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    return categories.length;
+  },
+});
+
 export const deleteCategory = mutation({
   args: { categoryId: v.id('categories') },
   handler: async (ctx, { categoryId }) => {

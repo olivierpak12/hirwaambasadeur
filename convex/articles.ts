@@ -1,5 +1,32 @@
-import { query } from './_generated/server';
+import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
+
+// Helper to enrich articles with author, category, and image URLs
+async function enrichArticle(ctx: any, article: any) {
+  const author = await ctx.db.get(article.authorId);
+  const category = await ctx.db.get(article.categoryId);
+  
+  // Handle both new (featuredImageId) and old (featuredImage) formats
+  let featuredImage = undefined;
+  if (article.featuredImageId) {
+    try {
+      featuredImage = await ctx.storage.getUrl(article.featuredImageId);
+    } catch (e) {
+      // If storage ID is invalid, fall back to old URL
+      featuredImage = article.featuredImage;
+    }
+  } else if (article.featuredImage) {
+    // Old format - use URL directly
+    featuredImage = article.featuredImage;
+  }
+  
+  return { 
+    ...article, 
+    featuredImage,
+    author: author ?? undefined, 
+    category: category ?? undefined 
+  };
+}
 
 export const getPublishedArticles = query({
   handler: async (ctx) => {
@@ -10,11 +37,7 @@ export const getPublishedArticles = query({
       .take(20);
 
     const enriched = await Promise.all(
-      articles.map(async (article) => {
-        const author = await ctx.db.get(article.authorId);
-        const category = await ctx.db.get(article.categoryId);
-        return { ...article, author: author ?? undefined, category: category ?? undefined };
-      })
+      articles.map(article => enrichArticle(ctx, article))
     );
 
     return enriched;
@@ -29,11 +52,7 @@ export const getAllArticles = query({
       .collect();
 
     const enriched = await Promise.all(
-      articles.map(async (article) => {
-        const author = await ctx.db.get(article.authorId);
-        const category = await ctx.db.get(article.categoryId);
-        return { ...article, author: author ?? undefined, category: category ?? undefined };
-      })
+      articles.map(article => enrichArticle(ctx, article))
     );
 
     return enriched;
@@ -47,9 +66,7 @@ export const getArticleBySlug = query({
     const articles = await q.take(1);
     if (!articles.length) return null;
     const article = articles[0];
-    const author = await ctx.db.get(article.authorId);
-    const category = await ctx.db.get(article.categoryId);
-    return { ...article, author: author ?? undefined, category: category ?? undefined };
+    return enrichArticle(ctx, article);
   },
 });
 
@@ -71,11 +88,7 @@ export const getArticlesByCategory = query({
       .take(20);
 
     const enriched = await Promise.all(
-      articles.map(async (article) => {
-        const author = await ctx.db.get(article.authorId);
-        const category = await ctx.db.get(article.categoryId);
-        return { ...article, author: author ?? undefined, category: category ?? undefined };
-      })
+      articles.map(article => enrichArticle(ctx, article))
     );
 
     return enriched;
@@ -96,10 +109,7 @@ export const getAuthorById = query({
       .take(20);
 
     const enrichedArticles = await Promise.all(
-      articles.map(async (article) => {
-        const category = await ctx.db.get(article.categoryId);
-        return { ...article, category };
-      })
+      articles.map(article => enrichArticle(ctx, article))
     );
 
     return { ...author, articles: enrichedArticles };
@@ -118,13 +128,51 @@ export const getRelatedArticles = query({
       .take(limit);
 
     const enriched = await Promise.all(
-      articles.map(async (article) => {
-        const author = await ctx.db.get(article.authorId);
-        const category = await ctx.db.get(article.categoryId);
-        return { ...article, author: author ?? undefined, category: category ?? undefined };
-      })
+      articles.map(article => enrichArticle(ctx, article))
     );
 
     return enriched;
+  },
+});
+
+export const createArticle = mutation({
+  args: {
+    title: v.string(),
+    slug: v.string(),
+    content: v.string(),
+    excerpt: v.string(),
+    featuredImageId: v.optional(v.id('_storage')),
+    categoryId: v.id('categories'),
+    authorId: v.id('authors'),
+    status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
+    tags: v.optional(v.array(v.string())),
+    featured: v.boolean(),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date().toISOString();
+    const { featuredImageId, ...articleData } = args;
+    return await ctx.db.insert('articles', {
+      ...articleData,
+      featuredImageId,
+      publishedAt: args.status === 'published' ? now : null,
+      updatedAt: now,
+      views: 0,
+    });
+  },
+});
+
+export const updateArticleStatus = mutation({
+  args: {
+    articleId: v.id('articles'),
+    status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
+  },
+  handler: async (ctx, { articleId, status }) => {
+    const now = new Date().toISOString();
+    await ctx.db.patch(articleId, {
+      status,
+      publishedAt: status === 'published' ? now : null,
+      updatedAt: now,
+    });
+    return articleId;
   },
 });

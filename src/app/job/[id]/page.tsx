@@ -148,6 +148,7 @@ function JobDetailClient({ id }: { id: string }) {
   );
 }
 
-export default function JobDetailPage({ params }: { params: { id: string } }) {
-  return <JobDetailClient id={params.id} />;
+export default async function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  return <JobDetailClient id={id} />;
 }

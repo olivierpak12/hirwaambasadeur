@@ -309,6 +309,7 @@ function OverviewPanel() {
 // ─── Articles Panel ───────────────────────────────────────────────────────────
 function ArticlesPanel() {
   const articles = useQuery(api.articles.getAllArticles) ?? [];
+  const updateArticleStatus = useMutation(api.articles.updateArticleStatus);
   const [search, setSearch] = useState('');
   const [localArticles, setLocalArticles] = useState<any[]>([]);
   
@@ -319,7 +320,8 @@ function ArticlesPanel() {
     return displayArticles.filter((a: any) => a.title.toLowerCase().includes(query));
   }, [articles, localArticles, search]);
 
-  const handlePublish = (articleId: string) => {
+  const handlePublish = async (articleId: string) => {
+    await updateArticleStatus({ articleId, status: 'published' });
     setLocalArticles(prev => {
       const updated = prev.length > 0 ? prev : articles;
       return updated.map((a: any) => 
@@ -330,7 +332,8 @@ function ArticlesPanel() {
     });
   };
 
-  const handleUnpublish = (articleId: string) => {
+  const handleUnpublish = async (articleId: string) => {
+    await updateArticleStatus({ articleId, status: 'draft' });
     setLocalArticles(prev => {
       const updated = prev.length > 0 ? prev : articles;
       return updated.map((a: any) => 
@@ -624,29 +627,64 @@ function HiringPanel() {
 
 // ─── Authors Panel ────────────────────────────────────────────────────────────
 function AuthorsPanel() {
-  const [authors, setAuthors] = useState([
-    { _id: '1', name: 'Jane Doe', email: 'jane@example.com', category: 'World', articles: 24, status: 'active' },
-    { _id: '2', name: 'John Smith', email: 'john@example.com', category: 'Technology', articles: 18, status: 'active' },
-    { _id: '3', name: 'Amara Osei', email: 'amara@example.com', category: 'Africa', articles: 11, status: 'active' },
-  ]);
+  const authors = useQuery(api.authors.getAllAuthors);
+  const seedAuthors = useMutation(api.authors.seedAuthors);
+  const [newAuthorName, setNewAuthorName] = useState('');
+  const [newAuthorEmail, setNewAuthorEmail] = useState('');
+  const [newAuthorBio, setNewAuthorBio] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  const handleCreateAuthor = async () => {
+    if (!newAuthorName.trim() || !newAuthorEmail.trim()) return;
+    const createAuthor = useMutation(api.authors.createAuthor);
+    await createAuthor({
+      name: newAuthorName.trim(),
+      email: newAuthorEmail.trim(),
+      bio: newAuthorBio.trim() || 'Journalist',
+    });
+    setNewAuthorName('');
+    setNewAuthorEmail('');
+    setNewAuthorBio('');
+    setShowForm(false);
+  };
+
+  const handleSeedAuthors = async () => {
+    await seedAuthors();
+  };
+
   return (
-    <Panel title={`Authors (${authors.length})`} action={<Btn variant="primary" size="sm">{Icon.plus} Add Author</Btn>}>
+    <Panel title={`Authors (${authors?.length || 0})`} action={
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Btn variant="muted" size="sm" onClick={handleSeedAuthors}>Seed Default</Btn>
+        <Btn variant="primary" size="sm" onClick={() => setShowForm(true)}>{Icon.plus} Add Author</Btn>
+      </div>
+    }>
+      {showForm && (
+        <div style={{ marginBottom: 16, padding: 16, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(201,168,76,0.1)', borderRadius: 4 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+            <Input value={newAuthorName} onChange={e => setNewAuthorName(e.target.value)} placeholder="Author name" />
+            <Input value={newAuthorEmail} onChange={e => setNewAuthorEmail(e.target.value)} placeholder="Email" type="email" />
+            <Input value={newAuthorBio} onChange={e => setNewAuthorBio(e.target.value)} placeholder="Bio (optional)" />
+            <Btn variant="success" size="sm" onClick={handleCreateAuthor}>Create</Btn>
+            <Btn variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
       <Table
-        cols={['Author', 'Email', 'Category', 'Articles', 'Status', 'Actions']}
-        rows={authors.map(a => [
+        cols={['Author', 'Email', 'Bio', 'Articles', 'Actions']}
+        rows={authors?.map(a => [
           <div key="author" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'rgba(201,168,76,0.12)', border: '1px solid rgba(201,168,76,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 800, color: '#c9a84c', flexShrink: 0 }}>{a.name.charAt(0)}</div>
             <span style={{ fontWeight: 600, color: '#d0c8a8' }}>{a.name}</span>
           </div>,
           <span key="email">{a.email}</span>,
-          <span key="category">{a.category}</span>,
-          <span key="articles">{a.articles}</span>,
-          <Badge key="status" status={a.status} />,
+          <span key="bio" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{a.bio}</span>,
+          <span key="articles">0</span>, // TODO: count articles per author
           <div key="actions" style={{ display: 'flex', gap: 4 }}>
             <Btn variant="ghost" size="sm">{Icon.edit}</Btn>
-            <Btn variant="danger" size="sm" onClick={() => setAuthors(p => p.filter(x => x._id !== a._id))}>{Icon.trash}</Btn>
+            <Btn variant="danger" size="sm">{Icon.trash}</Btn>
           </div>,
-        ])}
+        ]) || []}
       />
     </Panel>
   );
@@ -654,20 +692,54 @@ function AuthorsPanel() {
 
 // ─── Categories Panel ─────────────────────────────────────────────────────────
 function CategoriesPanel() {
-  const [cats, setCats] = useState(CATS.map((c, i) => ({ _id: String(i + 1), name: c, articles: [45, 32, 28, 21, 38, 17, 24, 19][i] ?? 10, active: true })));
+  const cats = useQuery(api.categories.getAllCategories);
+  const createCategory = useMutation(api.categories.createCategory);
+  const seedCategories = useMutation(api.categories.seedCategories);
+  const [newCategoryName, setNewCategoryName] = useState('');
+  const [showForm, setShowForm] = useState(false);
+
+  const handleCreateCategory = async () => {
+    if (!newCategoryName.trim()) return;
+    const slug = newCategoryName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+    await createCategory({
+      name: newCategoryName.trim(),
+      slug,
+    });
+    setNewCategoryName('');
+    setShowForm(false);
+  };
+
+  const handleSeedCategories = async () => {
+    await seedCategories();
+  };
+
   return (
-    <Panel title={`Categories (${cats.length})`} action={<Btn variant="primary" size="sm">{Icon.plus} New Category</Btn>}>
+    <Panel title={`Categories (${cats?.length || 0})`} action={
+      <div style={{ display: 'flex', gap: 8 }}>
+        <Btn variant="muted" size="sm" onClick={handleSeedCategories}>Seed Default</Btn>
+        <Btn variant="primary" size="sm" onClick={() => setShowForm(true)}>{Icon.plus} New Category</Btn>
+      </div>
+    }>
+      {showForm && (
+        <div style={{ marginBottom: 16, padding: 16, background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(201,168,76,0.1)', borderRadius: 4 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <Input value={newCategoryName} onChange={e => setNewCategoryName(e.target.value)} placeholder="Category name" />
+            <Btn variant="success" size="sm" onClick={handleCreateCategory}>Create</Btn>
+            <Btn variant="ghost" size="sm" onClick={() => setShowForm(false)}>Cancel</Btn>
+          </div>
+        </div>
+      )}
       <Table
-        cols={['Category', 'Articles', 'Status', 'Actions']}
-        rows={cats.map(c => [
+        cols={['Category', 'Slug', 'Articles', 'Actions']}
+        rows={cats?.map(c => [
           <span key="name" style={{ fontWeight: 600, color: '#d0c8a8' }}>{c.name}</span>,
-          <span key="articles">{c.articles}</span>,
-          <Badge key="status" status={c.active ? 'active' : 'inactive'} />,
+          <span key="slug" style={{ fontSize: 12, color: '#6a8a7a' }}>{c.slug}</span>,
+          <span key="articles">0</span>, // TODO: count articles per category
           <div key="actions" style={{ display: 'flex', gap: 4 }}>
             <Btn variant="ghost" size="sm">{Icon.edit}</Btn>
-            <Btn variant="danger" size="sm" onClick={() => setCats(p => p.filter(x => x._id !== c._id))}>{Icon.trash}</Btn>
+            <Btn variant="danger" size="sm">{Icon.trash}</Btn>
           </div>,
-        ])}
+        ]) || []}
       />
     </Panel>
   );

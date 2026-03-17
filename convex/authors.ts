@@ -33,16 +33,39 @@ export const getAuthorWithArticles = query({
   },
 });
 
+export const seedAuthors = mutation({
+  handler: async (ctx) => {
+    const existing = await ctx.db.query('authors').collect();
+    if (existing.length > 0) return; // Already seeded
+
+    const authors = [
+      { name: 'Admin', email: 'admin@hirwaambassadeur.com', bio: 'Administrator and editor' },
+    ];
+
+    for (const author of authors) {
+      await ctx.db.insert('authors', {
+        ...author,
+        createdAt: new Date().toISOString(),
+      });
+    }
+
+    return authors.length;
+  },
+});
+
 export const createAuthor = mutation({
   args: {
     name: v.string(),
     email: v.string(),
-    bio: v.string(),
+    bio: v.optional(v.string()),
     photo: v.optional(v.string()),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, { name, email, bio, photo }) => {
     const authorId = await ctx.db.insert('authors', {
-      ...args,
+      name,
+      email,
+      bio: bio || '',
+      photo: photo || '',
       createdAt: new Date().toISOString(),
     });
     return authorId;

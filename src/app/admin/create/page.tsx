@@ -9,7 +9,6 @@ const CATEGORIES = ['Politics', 'Business', 'Technology', 'Health', 'Sports', 'E
 
 const STATUSES = [
   { value: 'draft',     label: 'Draft',     color: '#4a7a5a' },
-  { value: 'review',    label: 'In Review', color: '#8a6a1a' },
   { value: 'published', label: 'Published', color: '#1a6a3a' },
 ];
 
@@ -145,7 +144,6 @@ export default function CreateArticlePage() {
       let authorId = authors?.[0]?._id;
       if (!authorId) {
         // Create a default author if none exist
-        const createAuthor = useMutation(api.authors.createAuthor);
         authorId = await createAuthor({
           name: 'Admin',
           email: 'admin@hirwaambassadeur.com',
@@ -159,7 +157,7 @@ export default function CreateArticlePage() {
         slug,
         content,
         excerpt,
-        featuredImage: featuredImageId || undefined,
+        featuredImageId: featuredImageId || undefined,
         categoryId: selectedCategory._id,
         authorId,
         status: status as 'draft' | 'published' | 'archived',
@@ -548,23 +546,29 @@ export default function CreateArticlePage() {
 
               <div style={{ padding: '14px' }}>
                 <Label>Category <span style={{ color: '#b04030', marginLeft: 2 }}>*</span></Label>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
-                  {categories?.map(cat => (
-                    <button key={cat._id} onClick={() => setCategory(cat.name)} style={{
-                      background: category === cat.name ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.02)',
-                      border: category === cat.name ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(201,168,76,0.08)',
-                      borderRadius: 3, padding: '7px 8px',
-                      color: category === cat.name ? '#c9a84c' : '#3a6a4a',
-                      fontSize: 11, fontWeight: category === cat.name ? 800 : 500,
-                      cursor: 'pointer', letterSpacing: '0.06em',
-                      transition: 'all 0.15s',
-                      textAlign: 'left',
-                    }}
-                      onMouseEnter={e => { if (category !== cat.name) { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)'; e.currentTarget.style.color = '#5a8a6a'; }}}
-                      onMouseLeave={e => { if (category !== cat.name) { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.08)'; e.currentTarget.style.color = '#3a6a4a'; }}}
-                    >{cat.name}</button>
-                  ))}
-                </div>
+                {!categories || categories.length === 0 ? (
+                  <div style={{ padding: '10px', color: '#8a7a6a', fontSize: 12, textAlign: 'center', background: 'rgba(201,168,76,0.05)', borderRadius: 3 }}>
+                    Loading categories...
+                  </div>
+                ) : (
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
+                    {categories.map(cat => (
+                      <button key={cat._id} onClick={() => setCategory(cat.name)} style={{
+                        background: category === cat.name ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.02)',
+                        border: category === cat.name ? '1px solid rgba(201,168,76,0.4)' : '1px solid rgba(201,168,76,0.08)',
+                        borderRadius: 3, padding: '7px 8px',
+                        color: category === cat.name ? '#c9a84c' : '#3a6a4a',
+                        fontSize: 11, fontWeight: category === cat.name ? 800 : 500,
+                        cursor: 'pointer', letterSpacing: '0.06em',
+                        transition: 'all 0.15s',
+                        textAlign: 'left',
+                      }}
+                        onMouseEnter={e => { if (category !== cat.name) { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.2)'; e.currentTarget.style.color = '#5a8a6a'; }}}
+                        onMouseLeave={e => { if (category !== cat.name) { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.08)'; e.currentTarget.style.color = '#3a6a4a'; }}}
+                      >{cat.name}</button>
+                    ))}
+                  </div>
+                )}
 
                 <Divider />
 
