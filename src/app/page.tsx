@@ -309,53 +309,63 @@ function HeroSection({ articles }: { articles: Article[] }) {
       gap: 2, background: '#1a1a1a',
     }}>
       {/* Main hero */}
-      <div style={{
-        gridColumn: 'span 2',
-        position: 'relative', overflow: 'hidden', cursor: 'pointer',
-        minHeight: 300,
-      }}>
-        <PlaceholderImg aspectRatio="16/7" index={0} />
+      <Link href={`/article/${main.slug}`} style={{ gridColumn: 'span 2', textDecoration: 'none', display: 'block' }}>
         <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.1) 60%)',
-          display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-          padding: '20px 18px',
-        }}>
-          <CategoryPill name={mainCategory} />
-          <h2 style={{
-            color: '#fff', margin: '7px 0 6px',
-            fontFamily: '"Helvetica Neue", Arial, sans-serif',
-            fontWeight: 800, fontSize: 'clamp(18px, 3vw, 28px)',
-            lineHeight: 1.25, letterSpacing: '-0.2px',
-          }}>{main.title}</h2>
-          <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '0 0 4px', lineHeight: 1.5 }}>
-            {main.excerpt}
-          </p>
-          <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11 }}>{timeAgo(main.publishedAt)}</span>
+          position: 'relative', overflow: 'hidden', cursor: 'pointer',
+          minHeight: 300,
+          transition: 'transform 0.2s',
+        }}
+          onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
+          onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+        >
+          <PlaceholderImg aspectRatio="16/7" index={0} />
+          <div style={{
+            position: 'absolute', inset: 0,
+            background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.1) 60%)',
+            display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+            padding: '20px 18px',
+          }}>
+            <CategoryPill name={mainCategory} />
+            <h2 style={{
+              color: '#fff', margin: '7px 0 6px',
+              fontFamily: '"Helvetica Neue", Arial, sans-serif',
+              fontWeight: 800, fontSize: 'clamp(18px, 3vw, 28px)',
+              lineHeight: 1.25, letterSpacing: '-0.2px',
+            }}>{main.title}</h2>
+            <p style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13, margin: '0 0 4px', lineHeight: 1.5 }}>
+              {main.excerpt}
+            </p>
+            <span style={{ color: 'rgba(255,255,255,0.55)', fontSize: 11 }}>{timeAgo(main.publishedAt)}</span>
+          </div>
         </div>
-      </div>
+      </Link>
 
       {/* Secondary articles */}
       {rest.map((a, i) => {
         const categoryName = a.category?.name ?? 'News';
         return (
-          <div key={a._id} style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer', minHeight: 180 }}>
-            <PlaceholderImg aspectRatio="4/3" index={i + 1} />
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 60%)',
-              display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
-              padding: '14px 14px',
-            }}>
-              <CategoryPill name={categoryName} />
-              <h3 style={{
-                color: '#fff', margin: '6px 0 0',
-                fontFamily: '"Helvetica Neue", Arial, sans-serif',
-                fontWeight: 700, fontSize: 'clamp(13px, 2vw, 16px)',
-                lineHeight: 1.3,
-              }}>{a.title}</h3>
+          <Link key={a._id} href={`/article/${a.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{ position: 'relative', overflow: 'hidden', cursor: 'pointer', minHeight: 180, transition: 'transform 0.2s' }}
+              onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
+              onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
+            >
+              <PlaceholderImg aspectRatio="4/3" index={i + 1} />
+              <div style={{
+                position: 'absolute', inset: 0,
+                background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 60%)',
+                display: 'flex', flexDirection: 'column', justifyContent: 'flex-end',
+                padding: '14px 14px',
+              }}>
+                <CategoryPill name={categoryName} />
+                <h3 style={{
+                  color: '#fff', margin: '6px 0 0',
+                  fontFamily: '"Helvetica Neue", Arial, sans-serif',
+                  fontWeight: 700, fontSize: 'clamp(13px, 2vw, 16px)',
+                  lineHeight: 1.3,
+                }}>{a.title}</h3>
+              </div>
             </div>
-          </div>
+          </Link>
         );
       })}
     </div>
@@ -365,38 +375,40 @@ function HeroSection({ articles }: { articles: Article[] }) {
 // ─── Story Card (list item) ──────────────────────────────────────────────────
 function StoryCard({ article, index }: { article: Article; index: number }) {
   return (
-    <article style={{
-      display: 'flex', gap: 12, padding: '14px 0',
-      borderBottom: '1px solid #e8e8e8',
-      cursor: 'pointer',
-      transition: 'background 0.15s',
-    }}
-      onMouseEnter={e => (e.currentTarget.style.background = '#f7f7f7')}
-      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
-    >
-      <div style={{ flexShrink: 0, width: 100, borderRadius: 2, overflow: 'hidden' }}>
-        <PlaceholderImg aspectRatio="4/3" index={index} />
-      </div>
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <CategoryPill name={article.category.name} />
-        <h3 style={{
-          margin: '5px 0 4px',
-          fontFamily: '"Helvetica Neue", Arial, sans-serif',
-          fontWeight: 700, fontSize: 15, lineHeight: 1.35,
-          color: '#1a1a1a',
-        }}>{article.title}</h3>
-        <p style={{
-          margin: '0 0 5px', fontSize: 13, color: '#4a4a4a',
-          lineHeight: 1.4, display: '-webkit-box',
-          WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-        }}>{article.excerpt}</p>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <span style={{ fontSize: 11, color: '#767676' }}>{timeAgo(article.publishedAt)}</span>
-          <span style={{ fontSize: 11, color: '#adadad' }}>·</span>
-          <span style={{ fontSize: 11, color: '#767676' }}>{article.readTime} read</span>
+    <Link href={`/article/${article.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+      <article style={{
+        display: 'flex', gap: 12, padding: '14px 0',
+        borderBottom: '1px solid #e8e8e8',
+        cursor: 'pointer',
+        transition: 'background 0.15s',
+      }}
+        onMouseEnter={e => (e.currentTarget.style.background = '#f7f7f7')}
+        onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+      >
+        <div style={{ flexShrink: 0, width: 100, borderRadius: 2, overflow: 'hidden' }}>
+          <PlaceholderImg aspectRatio="4/3" index={index} />
         </div>
-      </div>
-    </article>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <CategoryPill name={article.category.name} />
+          <h3 style={{
+            margin: '5px 0 4px',
+            fontFamily: '"Helvetica Neue", Arial, sans-serif',
+            fontWeight: 700, fontSize: 15, lineHeight: 1.35,
+            color: '#1a1a1a',
+          }}>{article.title}</h3>
+          <p style={{
+            margin: '0 0 5px', fontSize: 13, color: '#4a4a4a',
+            lineHeight: 1.4, display: '-webkit-box',
+            WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
+          }}>{article.excerpt}</p>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: 11, color: '#767676' }}>{timeAgo(article.publishedAt)}</span>
+            <span style={{ fontSize: 11, color: '#adadad' }}>·</span>
+            <span style={{ fontSize: 11, color: '#767676' }}>{article.readTime} read</span>
+          </div>
+        </div>
+      </article>
+    </Link>
   );
 }
 
@@ -415,26 +427,32 @@ function TrendingSidebar({ articles }: { articles: Article[] }) {
         }}>Most Read</span>
       </div>
       {articles.slice(0, 5).map((a, i) => (
-        <div key={a._id} style={{
-          display: 'flex', gap: 12, padding: '10px 0',
-          borderBottom: '1px solid #e8e8e8', cursor: 'pointer',
-          alignItems: 'flex-start',
-        }}>
-          <span style={{
-            fontSize: 24, fontWeight: 900, color: '#ddd',
-            fontFamily: '"Helvetica Neue", Arial, sans-serif',
-            lineHeight: 1, flexShrink: 0, width: 28, textAlign: 'center',
-          }}>{i + 1}</span>
-          <div>
-            <h4 style={{
-              margin: 0, fontSize: 14, fontWeight: 700, lineHeight: 1.3,
-              color: '#1a1a1a', fontFamily: '"Helvetica Neue", Arial, sans-serif',
-            }}>{a.title}</h4>
-            <span style={{ fontSize: 11, color: '#767676', marginTop: 3, display: 'block' }}>
-              {a.views.toLocaleString()} views · {timeAgo(a.publishedAt)}
-            </span>
+        <Link key={a._id} href={`/article/${a.slug}`} style={{ textDecoration: 'none', display: 'block' }}>
+          <div style={{
+            display: 'flex', gap: 12, padding: '10px 0',
+            borderBottom: '1px solid #e8e8e8', cursor: 'pointer',
+            alignItems: 'flex-start',
+            transition: 'background 0.15s',
+          }}
+            onMouseEnter={e => (e.currentTarget.style.background = '#f7f7f7')}
+            onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+          >
+            <span style={{
+              fontSize: 24, fontWeight: 900, color: '#ddd',
+              fontFamily: '"Helvetica Neue", Arial, sans-serif',
+              lineHeight: 1, flexShrink: 0, width: 28, textAlign: 'center',
+            }}>{i + 1}</span>
+            <div>
+              <h4 style={{
+                margin: 0, fontSize: 14, fontWeight: 700, lineHeight: 1.3,
+                color: '#1a1a1a', fontFamily: '"Helvetica Neue", Arial, sans-serif',
+              }}>{a.title}</h4>
+              <span style={{ fontSize: 11, color: '#767676', marginTop: 3, display: 'block' }}>
+                {a.views.toLocaleString()} views · {timeAgo(a.publishedAt)}
+              </span>
+            </div>
           </div>
-        </div>
+        </Link>
       ))}
     </section>
   );
