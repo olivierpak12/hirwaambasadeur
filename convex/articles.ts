@@ -8,15 +8,18 @@ async function enrichArticle(ctx: any, article: any) {
   
   // Handle both new (featuredImageId) and old (featuredImage) formats
   let featuredImage = undefined;
+  
+  // If we have a storage ID, get the URL from it
   if (article.featuredImageId) {
     try {
       featuredImage = await ctx.storage.getUrl(article.featuredImageId);
     } catch (e) {
-      // If storage ID is invalid, fall back to old URL
+      console.error('Failed to get storage URL:', e);
+      // If storage ID fails, use the stored URL if available
       featuredImage = article.featuredImage;
     }
   } else if (article.featuredImage) {
-    // Old format - use URL directly
+    // Use stored URL directly
     featuredImage = article.featuredImage;
   }
   
@@ -151,6 +154,7 @@ export const createArticle = mutation({
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
     const { featuredImageId, ...articleData } = args;
+    
     return await ctx.db.insert('articles', {
       ...articleData,
       featuredImageId,

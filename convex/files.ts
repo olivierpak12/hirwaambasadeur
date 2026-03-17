@@ -6,23 +6,18 @@ export const generateUploadUrl = mutation(async (ctx) => {
   return await ctx.storage.generateUploadUrl();
 });
 
-// Save the storage ID after upload and return the public URL
-export const saveImage = mutation({
-  args: {
-    storageId: v.id("_storage"),
-  },
-  handler: async (ctx, args) => {
-    const url = await ctx.storage.getUrl(args.storageId);
-    return url;
-  },
-});
-
-// Get a public URL from a storage ID
+// Get a public URL from a storage ID - use query for reliable URL generation
 export const getImageUrl = query({
   args: {
     storageId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
-    return await ctx.storage.getUrl(args.storageId);
+    try {
+      const url = await ctx.storage.getUrl(args.storageId);
+      return url;
+    } catch (error) {
+      console.error("Failed to get image URL:", error);
+      return null;
+    }
   },
 });

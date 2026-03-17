@@ -18,7 +18,6 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
-  const saveImage = useMutation(api.files.saveImage);
 
   const handleFile = useCallback(async (file: File) => {
     if (!file) return;
@@ -57,13 +56,9 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
 
       const { storageId } = await response.json();
 
-      // Step 3: Get the permanent public URL
-      const permanentUrl = await saveImage({ storageId });
-
-      if (permanentUrl) {
-        setPreview(permanentUrl);
-        onUploadComplete(permanentUrl, storageId);
-      }
+      // Pass the local preview URL and the storage ID to parent
+      // The permanent URL will be fetched from queries when displaying
+      onUploadComplete(localUrl, storageId);
     } catch (err) {
       setError('Upload failed. Please try again.');
       setPreview(currentImage || null);
@@ -71,7 +66,7 @@ export default function ImageUpload({ onUploadComplete, currentImage, label = 'F
     } finally {
       setUploading(false);
     }
-  }, [generateUploadUrl, saveImage, onUploadComplete, currentImage]);
+  }, [generateUploadUrl, onUploadComplete, currentImage]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
