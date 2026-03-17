@@ -1,0 +1,60 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --gold: #c9a84c;
+  --gold-light: #f7f0dc;
+  --gold-dark: #5a4010;
+  --forest: #0f2318;
+  --forest-mid: #1a3d28;
+  --forest-border: #2a4a35;
+  --forest-muted: #a0b8a8;
+  --text-light: #f0ece0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-sans, Georgia, serif);
+  background: #f5f2eb;
+  color: #1a1a1a;
+}
+
+a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+a:hover,
+a:focus {
+  color: var(--text-light);
+  text-decoration: underline;
+}
+
+.serif {
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+/* Breaking bar animation */
+@keyframes scroll {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* Line clamp utilities */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
