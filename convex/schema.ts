@@ -27,6 +27,8 @@ export default defineSchema({
     excerpt: v.string(),
     // ✅ Store multiple featured image storageIds
     featuredImageIds: v.optional(v.array(v.id('_storage'))),
+    // ✅ Backward compatibility for existing articles
+    featuredImageId: v.optional(v.id('_storage')),
     // ✅ Removed featuredImage: v.optional(v.string()) — was storing expired blob URLs
     images: v.optional(v.array(v.object({
       storageId: v.id('_storage'),
