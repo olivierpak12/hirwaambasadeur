@@ -87,7 +87,7 @@ export default function CreateArticlePage() {
   const [tagInput, setTagInput]               = useState('');
   const [featuredImage, setFeaturedImage]     = useState('');
   const [featuredImageId, setFeaturedImageId] = useState('');
-  const [images, setImages] = useState<Array<{ url: string; storageId: string; caption: string }>>([]);
+  const [images, setImages] = useState<Array<{ storageId: string; caption: string }>>([]);
   const [status, setStatus]                   = useState('draft');
   const [saving, setSaving]                   = useState(false);
   const [saved, setSaved]                     = useState(false);
@@ -169,7 +169,6 @@ export default function CreateArticlePage() {
         featuredImage: storedFeaturedImage,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
-          url: img.url,
           caption: img.caption,
         })) : undefined,
         categoryId: selectedCategory._id,
@@ -660,6 +659,25 @@ export default function CreateArticlePage() {
                     <span style={{ fontSize: 11, color: '#8aaa6a' }}>Image uploaded and ready</span>
                   </div>
                 )}
+              </div>
+            </div>
+
+            {/* Additional images gallery */}
+            <div style={{
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(201,168,76,0.1)',
+              borderRadius: 4, overflow: 'hidden',
+            }}>
+              <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(201,168,76,0.08)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 3, height: 14, background: '#c9a84c', borderRadius: 2 }} />
+                <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Article Images (up to 5)</span>
+              </div>
+              <div style={{ padding: '14px' }}>
+                <MultiImageUpload
+                  onImagesChange={setImages}
+                  maxImages={5}
+                  label="Add photos to your article"
+                />
               </div>
             </div>
 
