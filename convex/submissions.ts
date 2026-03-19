@@ -59,7 +59,6 @@ export const approveSubmission = mutation({
       excerpt,
       categoryId: submission.categoryId,
       authorId,
-      featuredImage: submission.image,
       publishedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       views: 0,

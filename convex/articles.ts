@@ -1,35 +1,61 @@
-import { query, mutation } from './_generated/server';
+﻿import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
-// Helper to enrich articles with author, category, and image URLs
+// Enrich articles with related entities and resolve storage URLs for images.
 async function enrichArticle(ctx: any, article: any) {
   const author = await ctx.db.get(article.authorId);
   const category = await ctx.db.get(article.categoryId);
-  
-  // Handle both new (featuredImageId) and old (featuredImage) formats
-  let featuredImage = undefined;
-  
-  // Prefer the stored image URL (most reliable)
-  if (article.featuredImage) {
+
+  // Prefer explicit remote URLs when present (legacy data); otherwise resolve storage IDs.
+  let featuredImage: string | undefined;
+  const hasRemoteFeaturedImage =
+    typeof article.featuredImage === 'string' && /^https?:\/\//.test(article.featuredImage);
+  if (hasRemoteFeaturedImage) {
     featuredImage = article.featuredImage;
-  } 
-  // Try to get the URL from storage ID if no stored URL
-  else if (article.featuredImageId) {
+  } else if (article.featuredImageId) {
     try {
       const url = await ctx.storage.getUrl(article.featuredImageId);
-      if (url) {
-        featuredImage = url;
-      }
+      if (url) featuredImage = url;
     } catch (e) {
-      console.error('Failed to get storage URL:', e);
+      console.error('Failed to get featured image URL:', e);
     }
   }
-  
-  return { 
-    ...article, 
+
+  let images: { url: string; caption?: string }[] | undefined;
+  if (Array.isArray(article.images) && article.images.length > 0) {
+    images = (
+      await Promise.all(
+        article.images.map(async (img: any) => {
+          // Legacy support: accept an explicit URL if provided
+          if (typeof img?.url === 'string' && /^https?:\/\//.test(img.url)) {
+            return { url: img.url, caption: img.caption };
+          }
+          if (img?.storageId) {
+            try {
+              const url = await ctx.storage.getUrl(img.storageId);
+              return url ? { url, caption: img.caption } : null;
+            } catch (e) {
+              console.error('Failed to get gallery image URL:', e);
+              return null;
+            }
+          }
+          return null;
+        })
+      )
+    ).filter(Boolean) as { url: string; caption?: string }[];
+
+    // If no explicit featured image was set, fall back to the first gallery image.
+    if (!featuredImage && images.length > 0) {
+      featuredImage = images[0].url;
+    }
+  }
+
+  return {
+    ...article,
     featuredImage,
-    author: author ?? undefined, 
-    category: category ?? undefined 
+    images,
+    author: author ?? undefined,
+    category: category ?? undefined,
   };
 }
 
@@ -41,11 +67,7 @@ export const getPublishedArticles = query({
       .order('desc')
       .take(20);
 
-    const enriched = await Promise.all(
-      articles.map(article => enrichArticle(ctx, article))
-    );
-
-    return enriched;
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article)));
   },
 });
 
@@ -56,22 +78,20 @@ export const getAllArticles = query({
       .order('desc')
       .collect();
 
-    const enriched = await Promise.all(
-      articles.map(article => enrichArticle(ctx, article))
-    );
-
-    return enriched;
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article)));
   },
 });
 
 export const getArticleBySlug = query({
   args: { slug: v.string() },
   handler: async (ctx, { slug }) => {
-    const q = ctx.db.query('articles').filter((q) => q.eq(q.field('slug'), slug));
-    const articles = await q.take(1);
+    const articles = await ctx.db
+      .query('articles')
+      .filter((q) => q.eq(q.field('slug'), slug))
+      .take(1);
+
     if (!articles.length) return null;
-    const article = articles[0];
-    return enrichArticle(ctx, article);
+    return enrichArticle(ctx, articles[0]);
   },
 });
 
@@ -92,11 +112,7 @@ export const getArticlesByCategory = query({
       .order('desc')
       .take(20);
 
-    const enriched = await Promise.all(
-      articles.map(article => enrichArticle(ctx, article))
-    );
-
-    return enriched;
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article)));
   },
 });
 
@@ -114,7 +130,7 @@ export const getAuthorById = query({
       .take(20);
 
     const enrichedArticles = await Promise.all(
-      articles.map(article => enrichArticle(ctx, article))
+      articles.map((article) => enrichArticle(ctx, article))
     );
 
     return { ...author, articles: enrichedArticles };
@@ -122,7 +138,11 @@ export const getAuthorById = query({
 });
 
 export const getRelatedArticles = query({
-  args: { articleId: v.string(), categoryId: v.string(), limit: v.optional(v.number()) },
+  args: {
+    articleId: v.string(),
+    categoryId: v.string(),
+    limit: v.optional(v.number()),
+  },
   handler: async (ctx, { articleId, categoryId, limit = 3 }) => {
     const articles = await ctx.db
       .query('articles')
@@ -132,11 +152,7 @@ export const getRelatedArticles = query({
       .order('desc')
       .take(limit);
 
-    const enriched = await Promise.all(
-      articles.map(article => enrichArticle(ctx, article))
-    );
-
-    return enriched;
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article)));
   },
 });
 
@@ -147,27 +163,39 @@ export const createArticle = mutation({
     content: v.string(),
     excerpt: v.string(),
     featuredImageId: v.optional(v.id('_storage')),
+    // Legacy support: the UI may send blob URLs for preview, but we don't store them.
     featuredImage: v.optional(v.string()),
-    images: v.optional(v.array(v.object({
-      storageId: v.id('_storage'),
-      url: v.string(),
-      caption: v.optional(v.string()),
-    }))),
+    images: v.optional(
+      v.array(
+        v.object({
+          storageId: v.id('_storage'),
+          url: v.optional(v.string()),
+          caption: v.optional(v.string()),
+        })
+      )
+    ),
     categoryId: v.id('categories'),
     authorId: v.id('authors'),
-    status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
+    status: v.union(
+      v.literal('draft'),
+      v.literal('published'),
+      v.literal('archived')
+    ),
     tags: v.optional(v.array(v.string())),
     featured: v.boolean(),
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
-    const { featuredImageId, featuredImage, images, ...articleData } = args;
-    
+    const { featuredImageId, images, featuredImage, ...articleData } = args;
+
+    const sanitizedImages = images?.length
+      ? images.map((img) => ({ storageId: img.storageId, caption: img.caption }))
+      : undefined;
+
     return await ctx.db.insert('articles', {
       ...articleData,
       featuredImageId,
-      featuredImage: featuredImage || undefined,
-      images: images && images.length > 0 ? images : undefined,
+      images: sanitizedImages,
       publishedAt: args.status === 'published' ? now : undefined,
       updatedAt: now,
       views: 0,
@@ -178,7 +206,11 @@ export const createArticle = mutation({
 export const updateArticleStatus = mutation({
   args: {
     articleId: v.id('articles'),
-    status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
+    status: v.union(
+      v.literal('draft'),
+      v.literal('published'),
+      v.literal('archived')
+    ),
   },
   handler: async (ctx, { articleId, status }) => {
     const now = new Date().toISOString();

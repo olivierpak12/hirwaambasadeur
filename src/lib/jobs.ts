@@ -10,6 +10,8 @@ export type Job = {
   status: JobStatus;
   postedAt: string;
   description?: string;
+  requirements?: string[];
+  benefits?: string[];
 };
 
 export type JobApplicationStatus = 'pending' | 'approved' | 'rejected';
@@ -34,7 +36,53 @@ export function loadJobs(): Job[] {
   if (typeof window === 'undefined') return [];
   try {
     const raw = window.localStorage.getItem(JOBS_KEY);
-    if (!raw) return [];
+    if (!raw) {
+      // Initialize with sample jobs if none exist
+      const sampleJobs: Job[] = [
+        {
+          id: 'sample-1',
+          title: 'Senior Content Editor',
+          department: 'Editorial',
+          type: 'Full-time',
+          location: 'Kigali, Rwanda',
+          status: 'open',
+          postedAt: '2026-03-15',
+          description: 'We are looking for an experienced content editor to join our editorial team. You will be responsible for editing and publishing high-quality content across various topics including politics, business, technology, and culture.'
+        },
+        {
+          id: 'sample-2',
+          title: 'Digital Marketing Specialist',
+          department: 'Marketing',
+          type: 'Full-time',
+          location: 'Remote',
+          status: 'open',
+          postedAt: '2026-03-10',
+          description: 'Join our marketing team to help grow our digital presence. You will work on social media strategy, content marketing, and audience engagement across multiple platforms.'
+        },
+        {
+          id: 'sample-3',
+          title: 'Photojournalist',
+          department: 'Photography',
+          type: 'Contract',
+          location: 'Kigali, Rwanda',
+          status: 'open',
+          postedAt: '2026-03-08',
+          description: 'We are seeking a talented photojournalist to capture compelling images for our news stories. Experience with both still photography and video is preferred.'
+        },
+        {
+          id: 'sample-4',
+          title: 'Web Developer',
+          department: 'Technology',
+          type: 'Full-time',
+          location: 'Remote',
+          status: 'open',
+          postedAt: '2026-03-05',
+          description: 'Help us build and maintain our digital platforms. We are looking for a full-stack developer with experience in React, Next.js, and modern web technologies.'
+        }
+      ];
+      saveJobs(sampleJobs);
+      return sampleJobs;
+    }
     return JSON.parse(raw) as Job[];
   } catch {
     return [];

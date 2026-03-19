@@ -153,6 +153,12 @@ export default function CreateArticlePage() {
         });
       }
 
+      // Decide whether to persist a URL or only keep the storage id.
+      // Blob URLs are temporary and won't work after a page refresh, so we only store them for preview.
+      const storedFeaturedImage = featuredImage && (featuredImage.startsWith('http://') || featuredImage.startsWith('https://'))
+        ? featuredImage
+        : undefined;
+
       // Create article
       await createArticle({
         title,
@@ -160,7 +166,7 @@ export default function CreateArticlePage() {
         content,
         excerpt,
         featuredImageId: featuredImageId ? (featuredImageId as any) : undefined,
-        featuredImage: featuredImage || undefined,
+        featuredImage: storedFeaturedImage,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
           url: img.url,

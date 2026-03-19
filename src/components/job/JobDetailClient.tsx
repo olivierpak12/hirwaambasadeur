@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { addApplication, Job, JobApplication, loadJobs } from '@/lib/jobs';
+import { addApplication, JobApplication, loadJobs } from '@/lib/jobs';
 
 function formatDate(iso: string) {
   try {
@@ -12,16 +12,13 @@ function formatDate(iso: string) {
   }
 }
 
-function JobDetailClient({ id }: { id: string }) {
-  const [job, setJob] = useState<Job | null | undefined>(undefined);
+export default function JobDetailClient({ id }: { id: string }) {
+  const job = useMemo(() => loadJobs().find((j) => j.id === id) ?? null, [id]);
   const [status, setStatus] = useState<'idle' | 'submitted'>('idle');
   const [form, setForm] = useState({ name: '', email: '', coverLetter: '' });
   const [resume, setResume] = useState<File | null>(null);
 
-  // Load jobs on the client only to avoid SSR/client mismatch.
-  useEffect(() => {
-    setJob(loadJobs().find((j) => j.id === id) ?? null);
-  }, [id]);
+  const shareLink = useMemo(() => `${typeof window !== 'undefined' ? window.location.origin : ''}/job/${id}`, [id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +50,6 @@ function JobDetailClient({ id }: { id: string }) {
   };
 
   const copyLink = async () => {
-    const shareLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/job/${id}`;
     try {
       await navigator.clipboard.writeText(shareLink);
       alert('Copied job link to clipboard');
@@ -205,16 +201,71 @@ function JobDetailClient({ id }: { id: string }) {
                 marginBottom: 16,
                 color: '#1a1a1a'
               }}>
-                About this role
+                Job Description
               </h2>
-              <p style={{
-                fontSize: 16,
-                lineHeight: 1.6,
+              <div style={{
                 color: '#555',
-                margin: 0
+                lineHeight: 1.6,
+                fontSize: 16
               }}>
-                {job.description}
-              </p>
+                {job.description.split('\n').map((paragraph, index) => (
+                  <p key={index} style={{ margin: 0, marginBottom: index < job.description!.split('\n').length - 1 ? 16 : 0 }}>
+                    {paragraph}
+                  </p>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {job.requirements && (
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{
+                fontSize: 20,
+                fontWeight: 700,
+                margin: 0,
+                marginBottom: 16,
+                color: '#1a1a1a'
+              }}>
+                Requirements
+              </h2>
+              <ul style={{
+                color: '#555',
+                lineHeight: 1.6,
+                fontSize: 16,
+                paddingLeft: 20
+              }}>
+                {job.requirements.map((req, index) => (
+                  <li key={index} style={{ marginBottom: 8 }}>
+                    {req}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
+          {job.benefits && (
+            <div style={{ marginBottom: 32 }}>
+              <h2 style={{
+                fontSize: 20,
+                fontWeight: 700,
+                margin: 0,
+                marginBottom: 16,
+                color: '#1a1a1a'
+              }}>
+                Benefits
+              </h2>
+              <ul style={{
+                color: '#555',
+                lineHeight: 1.6,
+                fontSize: 16,
+                paddingLeft: 20
+              }}>
+                {job.benefits.map((benefit, index) => (
+                  <li key={index} style={{ marginBottom: 8 }}>
+                    {benefit}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
         </div>
@@ -237,23 +288,23 @@ function JobDetailClient({ id }: { id: string }) {
 
           {status === 'submitted' ? (
             <div style={{
-              padding: 24,
-              background: 'linear-gradient(135deg, #e8f5e8, #f0f9f0)',
-              border: '1px solid #c8e6c9',
+              textAlign: 'center',
+              padding: '40px 20px',
+              background: 'linear-gradient(135deg, #f0f9f0, #e8f5e8)',
               borderRadius: 12,
-              textAlign: 'center'
+              border: '1px solid #d4edda'
             }}>
               <div style={{
-                width: 48,
-                height: 48,
-                background: '#4caf50',
+                width: 64,
+                height: 64,
+                background: '#28a745',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 16px'
               }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round">
                   <polyline points="20,6 9,17 4,12"/>
                 </svg>
               </div>
@@ -262,22 +313,26 @@ function JobDetailClient({ id }: { id: string }) {
                 fontWeight: 700,
                 margin: 0,
                 marginBottom: 8,
-                color: '#2e7d32'
+                color: '#155724'
               }}>
                 Application Submitted!
               </h3>
               <p style={{
+                color: '#155724',
                 margin: 0,
-                color: '#555',
-                fontSize: 16,
-                lineHeight: 1.5
+                fontSize: 16
               }}>
-                Thank you for your interest in joining Hirwa Ambassadeur. We'll review your application and get back to you within 5-7 business days.
+                Thank you for your interest. We'll review your application and get back to you soon.
               </p>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} style={{ display: 'grid', gap: 20 }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
+            <form onSubmit={handleSubmit}>
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: 20,
+                marginBottom: 20
+              }}>
                 <div>
                   <label style={{
                     display: 'block',
@@ -290,6 +345,7 @@ function JobDetailClient({ id }: { id: string }) {
                   </label>
                   <input
                     required
+                    type="text"
                     value={form.name}
                     onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
                     style={{
@@ -449,9 +505,4 @@ function JobDetailClient({ id }: { id: string }) {
       </div>
     </div>
   );
-}
-
-export default function JobDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = React.use(params);
-  return <JobDetailClient id={id} />;
 }

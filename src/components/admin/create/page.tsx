@@ -81,7 +81,7 @@ export default function CreateArticlePage() {
   const [tagInput, setTagInput]               = useState('');
   const [featuredImage, setFeaturedImage]     = useState(''); // UI only (completeness bar)
   const [featuredImageId, setFeaturedImageId] = useState(''); // saved to DB
-  const [images, setImages] = useState<Array<{ url: string; storageId: string; caption: string }>>([]);
+  const [images, setImages] = useState<Array<{ storageId: string; caption: string }>>([]);
   const [status, setStatus]                   = useState('draft');
   const [saving, setSaving]                   = useState(false);
   const [saved, setSaved]                     = useState(false);
@@ -142,16 +142,21 @@ export default function CreateArticlePage() {
         });
       }
 
+      // Decide whether to persist a URL or only keep the storage id.
+      // Blob URLs are temporary and won't work after a page refresh, so we only store them for preview.
+      const storedFeaturedImage = featuredImage && (featuredImage.startsWith('http://') || featuredImage.startsWith('https://'))
+        ? featuredImage
+        : undefined;
+
       await createArticle({
         title,
         slug,
         content,
         excerpt,
         featuredImageId: featuredImageId ? (featuredImageId as any) : undefined,
-        featuredImage: featuredImage || undefined,
+        featuredImage: storedFeaturedImage,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
-          url: img.url,
           caption: img.caption,
         })) : undefined,
         categoryId: selectedCategory._id,

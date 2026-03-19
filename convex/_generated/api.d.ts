@@ -12,7 +12,10 @@ import type * as articles from "../articles.js";
 import type * as authors from "../authors.js";
 import type * as categories from "../categories.js";
 import type * as files from "../files.js";
+import type * as sendSubscriptionConfirmation from "../sendSubscriptionConfirmation.js";
+import type * as sendVerificationEmail from "../sendVerificationEmail.js";
 import type * as submissions from "../submissions.js";
+import type * as subscriptions from "../subscriptions.js";
 import type * as writingPermissions from "../writingPermissions.js";
 
 import type {
@@ -26,7 +29,10 @@ declare const fullApi: ApiFromModules<{
   authors: typeof authors;
   categories: typeof categories;
   files: typeof files;
+  sendSubscriptionConfirmation: typeof sendSubscriptionConfirmation;
+  sendVerificationEmail: typeof sendVerificationEmail;
   submissions: typeof submissions;
+  subscriptions: typeof subscriptions;
   writingPermissions: typeof writingPermissions;
 }>;
 

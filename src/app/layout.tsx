@@ -2,7 +2,6 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
-import BreakingBar from '@/components/layout/BreakingBar';
 import ConvexClientProvider from '@/components/providers/ConvexClientProvider';
 
 export const metadata: Metadata = {
@@ -54,17 +53,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <ConvexClientProvider>
           <div id="app-shell">
             <Navbar />
-            <BreakingBar />
             <main id="main-content" tabIndex={-1}>
               {children}
             </main>
             <Footer />
           </div>
-
-          {/* Skip-to-content link (accessibility) */}
-          <a href="#main-content" className="skip-link">
-            Skip to main content
-          </a>
         </ConvexClientProvider>
       </body>
     </html>

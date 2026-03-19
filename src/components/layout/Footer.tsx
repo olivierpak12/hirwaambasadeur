@@ -1,8 +1,9 @@
 'use client';
 
-'use client';
-
+import { useState } from 'react';
 import Link from 'next/link';
+import { useMutation, useAction } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const footerSections = [
   {
@@ -77,6 +78,32 @@ const socials = [
 
 export default function Footer() {
   const year = new Date().getFullYear();
+  const [email, setEmail] = useState('');
+  const [status, setStatus] = useState<'idle' | 'submitting' | 'done' | 'error'>('idle');
+  const [error, setError] = useState<string | null>(null);
+  const createSubscription = useMutation(api.subscriptions.createSubscription);
+
+  const handleSubscribe = async () => {
+    if (!email.trim()) {
+      setError('Please enter your email address.');
+      setStatus('error');
+      return;
+    }
+
+    setStatus('submitting');
+    setError(null);
+
+    try {
+      await createSubscription({ email, source: 'footer' });
+      setStatus('done');
+    } catch (err) {
+      setError((err as Error)?.message || 'Something went wrong. Please try again.');
+      setStatus('error');
+    }
+  };
+
+  const isSubmitting = status === 'submitting';
+  const isDone = status === 'done';
 
   return (
     <footer style={{
@@ -120,40 +147,55 @@ export default function Footer() {
             Get Kigali's most important stories — politics, business, culture — delivered to your inbox every morning.
           </p>
 
-          <form
-            onSubmit={e => e.preventDefault()}
-            style={{
-              display: 'flex', gap: 8, width: '100%', maxWidth: 460,
-              flexWrap: 'wrap', justifyContent: 'center',
-            }}
-          >
-            <input
-              type="email"
-              placeholder="your@email.com"
-              required
-              style={{
-                flex: 1, minWidth: 200,
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(201,168,76,0.22)',
-                borderRadius: 3, padding: '11px 14px',
-                color: '#e0d0a0', fontSize: 13, outline: 'none',
-                fontFamily: 'inherit',
+          {isDone ? (
+            <p style={{ fontSize: 13, color: '#4caf50', fontWeight: 600, marginTop: 8 }}>
+              ✓ You&apos;re subscribed! Check your inbox.
+            </p>
+          ) : (
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                handleSubscribe();
               }}
-              onFocus={e   => (e.target.style.borderColor = 'rgba(201,168,76,0.55)')}
-              onBlur={e    => (e.target.style.borderColor = 'rgba(201,168,76,0.22)')}
-            />
-            <button type="submit" style={{
-              background: 'linear-gradient(135deg, #b8942a, #d4aa48)',
-              border: 'none', borderRadius: 3, padding: '11px 22px',
-              color: '#0b1e10', fontWeight: 900, fontSize: 11,
-              letterSpacing: '0.14em', textTransform: 'uppercase',
-              cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-              transition: 'filter 0.15s',
-            }}
-              onMouseEnter={e => (e.currentTarget.style.filter = 'brightness(1.1)')}
-              onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
-            >Subscribe Free</button>
-          </form>
+              style={{
+                display: 'flex', gap: 8, width: '100%', maxWidth: 460,
+                flexWrap: 'wrap', justifyContent: 'center',
+              }}
+            >
+              <input
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                disabled={isSubmitting}
+                style={{
+                  flex: 1, minWidth: 200,
+                  background: 'rgba(255,255,255,0.06)',
+                  border: '1px solid rgba(201,168,76,0.22)',
+                  borderRadius: 3, padding: '11px 14px',
+                  color: '#e0d0a0', fontSize: 13, outline: 'none',
+                  fontFamily: 'inherit',
+                }}
+                onFocus={e   => (e.target.style.borderColor = 'rgba(201,168,76,0.55)')}
+                onBlur={e    => (e.target.style.borderColor = 'rgba(201,168,76,0.22)')}
+              />
+              <button type="submit" disabled={isSubmitting} style={{
+                background: 'linear-gradient(135deg, #b8942a, #d4aa48)',
+                border: 'none', borderRadius: 3, padding: '11px 22px',
+                color: '#0b1e10', fontWeight: 900, fontSize: 11,
+                letterSpacing: '0.14em', textTransform: 'uppercase',
+                cursor: isSubmitting ? 'default' : 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                transition: 'filter 0.15s',
+                opacity: isSubmitting ? 0.7 : 1,
+              }}
+                onMouseEnter={e => (e.currentTarget.style.filter = isSubmitting ? 'none' : 'brightness(1.1)')}
+                onMouseLeave={e => (e.currentTarget.style.filter = 'none')}
+              >{isSubmitting ? 'Subscribing…' : 'Subscribe Free'}</button>
+            </form>
+          )}
+          {error && (
+            <p style={{ fontSize: 12, color: '#ff7a7a', marginTop: 8 }}>{error}</p>
+          )}
           <p style={{ fontSize: 10, color: '#2e5a3a', letterSpacing: '0.04em' }}>
             No spam. Unsubscribe at any time.
           </p>

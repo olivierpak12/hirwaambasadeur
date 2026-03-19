@@ -126,7 +126,7 @@ function Select({ value, onChange, options, placeholder }: SelectProps) {
       onFocus={e => { e.target.style.borderColor = 'rgba(201,168,76,0.45)'; }}
       onBlur={e  => { e.target.style.borderColor = 'rgba(201,168,76,0.15)'; }}
     >
-      {placeholder && <option value="">{placeholder}</option>}
+      {placeholder && <option value="" disabled hidden>{placeholder}</option>}
       {options.map((o: string) => <option key={o} value={o}>{o}</option>)}
     </select>
   );

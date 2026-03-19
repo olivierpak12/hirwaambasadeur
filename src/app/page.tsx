@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Job, loadJobs, loadSeenJobIds, markJobsAsSeen } from '@/lib/jobs';
+import Newsletter from '@/components/home/Newsletter';
 
 type Article = any;
 
@@ -38,48 +39,279 @@ function JobsSection({ jobs }: { jobs: Job[] }) {
   const openJobs = jobs.filter((job) => job.status === 'open');
   if (!openJobs.length) return null;
 
-  const share = (job: Job) => {
+  const share = async (job: Job) => {
     const url = `${window.location.origin}/job/${job.id}`;
-    navigator.clipboard.writeText(url);
-    alert('Link copied to clipboard!');
+    try {
+      await navigator.clipboard.writeText(url);
+      const notification = document.createElement('div');
+      notification.textContent = 'Link copied to clipboard!';
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4CAF50;
+        color: white;
+        padding: 12px 16px;
+        border-radius: 4px;
+        z-index: 1000;
+        font-size: 14px;
+      `;
+      document.body.appendChild(notification);
+      setTimeout(() => document.body.removeChild(notification), 3000);
+    } catch {
+      alert('Link copied to clipboard!');
+    }
   };
 
   return (
-    <section style={{ marginTop: 40 }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18 }}>
-        <div>
-          <h2 style={{ fontSize: 22, fontWeight: 700, margin: 0 }}>Join our team</h2>
-          <p style={{ margin: '4px 0 0', color: '#eee' }}>Explore open positions and apply directly.</p>
-        </div>
-        <Link href="/job" style={{ fontSize: 13, fontWeight: 700, color: '#fff', textDecoration: 'underline' }}>View all jobs</Link>
+    <section style={{ marginTop: 60, marginBottom: 40 }}>
+      {/* ── Header: professional/formal description, tighter margin ── */}
+      <div style={{ textAlign: 'center', marginBottom: 24 }}>
+        <h2 style={{
+          fontSize: 28,
+          fontWeight: 800,
+          margin: 0,
+          color: '#c9a84c',
+          letterSpacing: '-0.02em',
+          marginBottom: 8
+        }}>
+          Join Our Team
+        </h2>
+        <p style={{
+          color: '#666',
+          fontSize: 15,
+          maxWidth: 600,
+          margin: '0 auto',
+          lineHeight: 1.6
+        }}>
+          We are seeking qualified journalists, engineers, and media professionals committed to advancing the standard of African journalism. Explore current opportunities below.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 16 }}>
+      {/* ── Cards: compact padding and tighter internal spacing ── */}
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+        gap: 16,
+        marginBottom: 24
+      }}>
         {openJobs.slice(0, 3).map((job) => (
-          <div key={job.id} style={{ border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, padding: 16, background: 'rgba(255,255,255,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-              <div>
-                <h3 style={{ margin: 0, fontSize: 18 }}>{job.title}</h3>
-                <p style={{ margin: '6px 0 0', color: '#ccc', fontSize: 13 }}>{job.department} &mdash; {job.location}</p>
+          <div key={job.id} style={{
+            background: '#fff',
+            border: '1px solid rgba(201,168,76,0.3)',
+            borderRadius: 12,
+            padding: '12px 16px',
+            transition: 'all 0.2s ease',
+            cursor: 'pointer',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.transform = 'translateY(-2px)';
+            e.currentTarget.style.boxShadow = '0 8px 25px rgba(201,168,76,0.18)';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.6)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.transform = 'translateY(0)';
+            e.currentTarget.style.boxShadow = '0 1px 4px rgba(0,0,0,0.06)';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)';
+          }}
+          >
+            <div style={{ marginBottom: 10 }}>
+              <div style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'rgba(201,168,76,0.12)',
+                color: '#a07830',
+                padding: '3px 8px',
+                borderRadius: 4,
+                fontSize: 11,
+                fontWeight: 700,
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                marginBottom: 8
+              }}>
+                <span style={{
+                  width: 6,
+                  height: 6,
+                  background: '#a07830',
+                  borderRadius: '50%'
+                }}></span>
+                {job.type}
+              </div>
+              <h3 style={{
+                margin: 0,
+                fontSize: 16,
+                fontWeight: 700,
+                color: '#1a1a1a',
+                lineHeight: 1.3,
+                marginBottom: 6
+              }}>
+                {job.title}
+              </h3>
+              <p style={{
+                margin: 0,
+                color: '#555',
+                fontSize: 13,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 4
+              }}>
+                <span>{job.department}</span>
+                <span style={{ color: '#bbb' }}>•</span>
+                <span>{job.location}</span>
+              </p>
+            </div>
+
+            {job.description && (
+              <p style={{
+                margin: 0,
+                color: '#666',
+                fontSize: 12,
+                lineHeight: 1.5,
+                marginBottom: 10,
+                display: '-webkit-box',
+                WebkitLineClamp: 2,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}>
+                {job.description}
+              </p>
+            )}
+
+            <div style={{
+              display: 'flex',
+              gap: 8,
+              alignItems: 'center',
+              justifyContent: 'space-between'
+            }}>
+              <div style={{
+                fontSize: 11,
+                color: '#999',
+                fontWeight: 500
+              }}>
+                Posted {job.postedAt}
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => share(job)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', borderRadius: 4, padding: '6px 10px', cursor: 'pointer', color: '#fff', fontSize: 12 }}>Share</button>
-                <Link href={`/job/${job.id}`} style={{ background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: 4, padding: '6px 10px', color: '#fff', fontSize: 12, textDecoration: 'none' }}>View</Link>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    share(job);
+                  }}
+                  style={{
+                    background: '#f5f5f5',
+                    border: '1px solid #ddd',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    cursor: 'pointer',
+                    color: '#555',
+                    fontSize: 11,
+                    fontWeight: 500,
+                    transition: 'all 0.15s ease'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = '#eee';
+                    e.currentTarget.style.color = '#1a1a1a';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = '#f5f5f5';
+                    e.currentTarget.style.color = '#555';
+                  }}
+                >
+                  Share
+                </button>
+                <Link
+                  href={`/job/${job.id}`}
+                  style={{
+                    background: 'linear-gradient(135deg, #b8942a, #d4aa48)',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '5px 14px',
+                    color: '#0b1e10',
+                    fontSize: 11,
+                    fontWeight: 700,
+                    textDecoration: 'none',
+                    transition: 'all 0.15s ease',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 4
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.filter = 'brightness(1.1)';
+                    e.currentTarget.style.transform = 'translateY(-1px)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.filter = 'brightness(1)';
+                    e.currentTarget.style.transform = 'translateY(0)';
+                  }}
+                >
+                  Apply Now
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <path d="M7 17L17 7"/>
+                    <path d="M7 7h10v10"/>
+                  </svg>
+                </Link>
               </div>
-            </div>
-            <div style={{ marginTop: 10, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bbb' }}>{job.type}</span>
-              <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: '#bbb' }}>{job.status.toUpperCase()}</span>
             </div>
           </div>
         ))}
+      </div>
+
+      <div style={{ textAlign: 'center' }}>
+        <Link
+          href="/job"
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 8,
+            color: '#c9a84c',
+            textDecoration: 'none',
+            fontSize: 14,
+            fontWeight: 600,
+            padding: '12px 24px',
+            border: '1px solid rgba(201,168,76,0.3)',
+            borderRadius: 8,
+            transition: 'all 0.2s ease'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(201,168,76,0.1)';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.5)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.borderColor = 'rgba(201,168,76,0.3)';
+          }}
+        >
+          View All Open Positions
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <path d="M7 17L17 7"/>
+            <path d="M7 7h10v10"/>
+          </svg>
+        </Link>
       </div>
     </section>
   );
 }
 
 // ─── Placeholder image (SVG inline) ─────────────────────────────────────────
-function PlaceholderImg({ aspectRatio = '16/9', index = 0 }: { aspectRatio?: string; index?: number }) {
+function PlaceholderImg({ aspectRatio = '16/9', index = 0, src }: { aspectRatio?: string; index?: number; src?: string }) {
+  if (src) {
+    return (
+      <div style={{
+        aspectRatio,
+        width: '100%',
+        overflow: 'hidden',
+      }}>
+        <img
+          src={src}
+          alt=""
+          style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          loading="lazy"
+        />
+      </div>
+    );
+  }
+
   const palettes = [
     ['#1a3c5e', '#2e6da4'],
     ['#3b1a1a', '#bb1919'],
@@ -318,7 +550,7 @@ function HeroSection({ articles }: { articles: Article[] }) {
           onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
           onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
         >
-          <PlaceholderImg aspectRatio="16/7" index={0} />
+          <PlaceholderImg aspectRatio="16/7" index={0} src={main.featuredImage} />
           <div style={{
             position: 'absolute', inset: 0,
             background: 'linear-gradient(to top, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.1) 60%)',
@@ -349,7 +581,7 @@ function HeroSection({ articles }: { articles: Article[] }) {
               onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.02)')}
               onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
             >
-              <PlaceholderImg aspectRatio="4/3" index={i + 1} />
+              <PlaceholderImg aspectRatio="4/3" index={i + 1} src={a.featuredImage} />
               <div style={{
                 position: 'absolute', inset: 0,
                 background: 'linear-gradient(to top, rgba(0,0,0,0.78) 0%, transparent 60%)',
@@ -386,7 +618,7 @@ function StoryCard({ article, index }: { article: Article; index: number }) {
         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
         <div style={{ flexShrink: 0, width: 100, borderRadius: 2, overflow: 'hidden' }}>
-          <PlaceholderImg aspectRatio="4/3" index={index} />
+          <PlaceholderImg aspectRatio="4/3" index={index} src={article.featuredImage} />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <CategoryPill name={article.category.name} />
@@ -458,50 +690,6 @@ function TrendingSidebar({ articles }: { articles: Article[] }) {
   );
 }
 
-// ─── Newsletter ──────────────────────────────────────────────────────────────
-function NewsletterBox() {
-  const [email, setEmail] = useState('');
-  const [done, setDone] = useState(false);
-  return (
-    <div style={{
-      background: '#1a1a1a', borderRadius: 4, padding: '20px 18px', marginTop: 24,
-    }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="#bb1919"><path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg>
-        <span style={{ color: '#fff', fontWeight: 800, fontSize: 13, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Newsletter</span>
-      </div>
-      <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12, margin: '0 0 14px', lineHeight: 1.5 }}>
-        Get the day&apos;s top stories delivered to your inbox.
-      </p>
-      {done ? (
-        <p style={{ color: '#4caf50', fontSize: 13, fontWeight: 600 }}>✓ You&apos;re subscribed!</p>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-          <input
-            type="email"
-            placeholder="Your email address"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            style={{
-              padding: '9px 12px', borderRadius: 3, border: 'none',
-              fontSize: 13, background: 'rgba(255,255,255,0.12)', color: '#fff',
-              outline: 'none',
-            }}
-          />
-          <button
-            onClick={() => email && setDone(true)}
-            style={{
-              background: '#bb1919', color: '#fff', border: 'none',
-              padding: '9px', borderRadius: 3, fontWeight: 700, fontSize: 13,
-              cursor: 'pointer', letterSpacing: '0.04em',
-            }}
-          >SIGN UP</button>
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── Ad Placeholder ──────────────────────────────────────────────────────────
 function AdBox() {
   return (
@@ -561,12 +749,10 @@ export default function Home() {
       if (unseen.length) setUnseenJobs(unseen);
     };
 
-    // Update when jobs change in other tabs, when window gets focus, or when jobs are updated in this tab.
     window.addEventListener('storage', refresh);
     window.addEventListener('focus', refresh);
     window.addEventListener('jobsUpdated', refresh);
 
-    // Do an initial refresh
     refresh();
 
     return () => {
@@ -659,12 +845,10 @@ export default function Home() {
         display: 'grid',
         gridTemplateColumns: 'minmax(0,1fr)',
       }}>
-        {/* Responsive two-col wrapper */}
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'minmax(0,1fr)',
         }}>
-          {/* Inner grid for desktop */}
           <div className="bbc-grid" style={{ display: 'contents' }}>
             {/* Main column */}
             <main style={{ background: '#fff', padding: '0 16px' }}>
@@ -679,7 +863,6 @@ export default function Home() {
             <aside style={{ background: '#fff', padding: '16px', borderLeft: '1px solid #e8e8e8' }}>
               <AdBox />
               <TrendingSidebar articles={trending} />
-              <NewsletterBox />
             </aside>
           </div>
         </div>

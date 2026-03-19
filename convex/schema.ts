@@ -25,11 +25,12 @@ export default defineSchema({
     slug: v.string(),
     content: v.string(),
     excerpt: v.string(),
+    // ✅ Only store the storageId — URL is resolved at query time via storage.getUrl()
     featuredImageId: v.optional(v.id('_storage')),
-    featuredImage: v.optional(v.string()),
+    // ✅ Removed featuredImage: v.optional(v.string()) — was storing expired blob URLs
     images: v.optional(v.array(v.object({
       storageId: v.id('_storage'),
-      url: v.string(),
+      // ✅ Removed url: v.string() — was storing expired blob URLs
       caption: v.optional(v.string()),
     }))),
     categoryId: v.id('categories'),
@@ -63,6 +64,16 @@ export default defineSchema({
     createdAt: v.string(),
     status: v.union(v.literal('new'), v.literal('read'), v.literal('responded')),
   }).index('by_status', ['status']),
+
+  // Newsletter subscriptions
+  subscriptions: defineTable({
+    email: v.string(),
+    subscribedAt: v.string(),
+    source: v.optional(v.string()),
+    verified: v.optional(v.boolean()),
+    verificationCode: v.optional(v.string()),
+    codeExpiresAt: v.optional(v.string()),
+  }).index('by_email', ['email']),
 
   // Advertisement placements
   advertisements: defineTable({
