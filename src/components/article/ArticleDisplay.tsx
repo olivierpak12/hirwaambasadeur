@@ -1,9 +1,13 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 interface ArticleDisplayProps {
   article: {
+    _id: string;
     title: string;
     excerpt: string;
     content: string;
@@ -14,11 +18,18 @@ interface ArticleDisplayProps {
     publishedAt: string;
     updatedAt?: string;
     views?: number;
+    commentCount?: number;
+    likeCount?: number;
   };
   relatedArticles?: any[];
 }
 
 export default function ArticleDisplay({ article, relatedArticles = [] }: ArticleDisplayProps) {
+  const [commentText, setCommentText] = useState('');
+  const [authorName, setAuthorName] = useState('');
+  const [authorEmail, setAuthorEmail] = useState('');
+  const [showComments, setShowComments] = useState(false);
+
   const publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
     month: 'long',
@@ -26,6 +37,15 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   });
 
   const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
+
+  // Convex hooks
+  const comments = useQuery(api.articles.getComments, { articleId: article._id as any });
+  const likeStatus = useQuery(api.articles.getLikeStatus, { 
+    articleId: article._id as any, 
+    userId: typeof window !== 'undefined' ? localStorage.getItem('userId') || 'anonymous' : 'anonymous' 
+  });
+  const addComment = useMutation(api.articles.addComment);
+  const addLike = useMutation(api.articles.addLike);
 
   const handleShare = (platform: string) => {
     const urls: Record<string, string> = {
@@ -35,6 +55,35 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
       Pinterest: `https://pinterest.com/pin/create/button/?url=${encodeURIComponent(shareUrl)}`,
     };
     if (urls[platform]) window.open(urls[platform], '_blank');
+  };
+
+  const handleLike = async () => {
+    try {
+      await addLike({
+        articleId: article._id as any,
+        userId: localStorage.getItem('userId') || 'anonymous',
+      });
+    } catch (error) {
+      console.error('Failed to toggle like:', error);
+    }
+  };
+
+  const handleCommentSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentText.trim() || !authorName.trim()) return;
+
+    try {
+      await addComment({
+        articleId: article._id as any,
+        authorName: authorName.trim(),
+        authorEmail: authorEmail.trim() || undefined,
+        content: commentText.trim(),
+      });
+      setCommentText('');
+      setAuthorEmail('');
+    } catch (error) {
+      console.error('Failed to add comment:', error);
+    }
   };
 
   return (
@@ -749,6 +798,101 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
                     {article.author.bio}
                   </p>
                 </div>
+              </div>
+            )}
+
+            {/* ── Engagement ── */}
+            <div style={{ borderTop: '1px solid #e8e2d4', paddingTop: 22, marginBottom: 8 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 16 }}>
+                {/* Like Button */}
+                <button
+                  onClick={handleLike}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 14, transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                >
+                  <span style={{ color: likeStatus?.liked ? '#e74c3c' : '#666' }}>❤️</span>
+                  <span style={{ color: '#666' }}>{article.likeCount || 0}</span>
+                </button>
+
+                {/* Comments Toggle */}
+                <button
+                  onClick={() => setShowComments(!showComments)}
+                  style={{
+                    display: 'flex', alignItems: 'center', gap: 8, padding: '8px 16px', border: '1px solid #ddd', borderRadius: 4, background: 'white', cursor: 'pointer', fontSize: 14, transition: 'all 0.2s'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = '#f5f5f5'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'white'}
+                >
+                  <span style={{ color: '#666' }}>💬</span>
+                  <span style={{ color: '#666' }}>{article.commentCount || 0}</span>
+                </button>
+              </div>
+            </div>
+
+            {/* ── Comments Section ── */}
+            {showComments && (
+              <div style={{ borderTop: '1px solid #e8e2d4', paddingTop: 22, marginBottom: 8 }}>
+                <h3 style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 18, fontWeight: 600, color: '#1a3d28', marginBottom: 16 }}>
+                  Comments ({article.commentCount || 0})
+                </h3>
+
+                {/* Comment Form */}
+                <form onSubmit={handleCommentSubmit} style={{ marginBottom: 24 }}>
+                  <div style={{ marginBottom: 12 }}>
+                    <input
+                      type="text"
+                      placeholder="Your name *"
+                      value={authorName}
+                      onChange={(e) => setAuthorName(e.target.value)}
+                      required
+                      style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, marginBottom: 8 }}
+                    />
+                    <input
+                      type="email"
+                      placeholder="Your email (optional)"
+                      value={authorEmail}
+                      onChange={(e) => setAuthorEmail(e.target.value)}
+                      style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, marginBottom: 8 }}
+                    />
+                    <textarea
+                      placeholder="Write your comment..."
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      required
+                      rows={4}
+                      style={{ width: '100%', padding: '8px 12px', border: '1px solid #ddd', borderRadius: 4, fontSize: 14, resize: 'vertical' }}
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    style={{ padding: '8px 16px', background: '#1a3d28', color: 'white', border: 'none', borderRadius: 4, cursor: 'pointer', fontSize: 14 }}
+                  >
+                    Post Comment
+                  </button>
+                </form>
+
+                {/* Comments List */}
+                {comments && comments.length > 0 && (
+                  <div style={{ borderTop: '1px solid #eee', paddingTop: 16 }}>
+                    {comments.map((comment: any) => (
+                      <div key={comment._id} style={{ marginBottom: 16, paddingBottom: 16, borderBottom: '1px solid #f5f5f5' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
+                          <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 14, fontWeight: 600 }}>
+                            {comment.authorName.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <p style={{ fontWeight: 600, color: '#1a3d28', margin: 0, fontSize: 14 }}>{comment.authorName}</p>
+                            <p style={{ color: '#666', margin: 0, fontSize: 12 }}>{new Date(comment.createdAt).toLocaleDateString()}</p>
+                          </div>
+                        </div>
+                        <p style={{ color: '#333', lineHeight: 1.6, margin: 0 }}>{comment.content}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

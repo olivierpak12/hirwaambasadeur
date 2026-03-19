@@ -61,17 +61,8 @@ async function enrichArticle(ctx: any, article: any) {
   }
 
   // Get comment and like counts
-  const commentCount = await ctx.db
-    .query('comments')
-    .filter((q) => q.eq(q.field('articleId'), article._id))
-    .collect()
-    .then((comments) => comments.length);
-
-  const likeCount = await ctx.db
-    .query('likes')
-    .filter((q) => q.eq(q.field('articleId'), article._id))
-    .collect()
-    .then((likes) => likes.length);
+  const commentCount = (await ctx.db.query('comments').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
+  const likeCount = (await ctx.db.query('likes').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
 
   return {
     ...article,
@@ -245,5 +236,104 @@ export const updateArticleStatus = mutation({
       updatedAt: now,
     });
     return articleId;
+  },
+});
+
+export const addComment = mutation({
+  args: {
+    articleId: v.id('articles'),
+    authorName: v.string(),
+    authorEmail: v.optional(v.string()),
+    content: v.string(),
+    parentId: v.optional(v.id('comments')),
+  },
+  handler: async (ctx, args) => {
+    const now = new Date().toISOString();
+    return await ctx.db.insert('comments', {
+      ...args,
+      createdAt: now,
+    });
+  },
+});
+
+export const getComments = query({
+  args: {
+    articleId: v.id('articles'),
+  },
+  handler: async (ctx, { articleId }) => {
+    const comments = await ctx.db
+      .query('comments')
+      .filter((q) => q.eq(q.field('articleId'), articleId))
+      .order('asc')
+      .collect();
+
+    // Build a tree structure for nested comments
+    const commentMap = new Map();
+    const rootComments: any[] = [];
+
+    comments.forEach((comment) => {
+      commentMap.set(comment._id, { ...comment, replies: [] });
+    });
+
+    comments.forEach((comment) => {
+      const commentWithReplies = commentMap.get(comment._id);
+      if (comment.parentId) {
+        const parent = commentMap.get(comment.parentId);
+        if (parent) {
+          parent.replies.push(commentWithReplies);
+        }
+      } else {
+        rootComments.push(commentWithReplies);
+      }
+    });
+
+    return rootComments;
+  },
+});
+
+export const addLike = mutation({
+  args: {
+    articleId: v.id('articles'),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, { articleId, userId }) => {
+    const now = new Date().toISOString();
+    
+    // Check if user already liked this article
+    const existingLike = await ctx.db
+      .query('likes')
+      .filter((q) => q.eq(q.field('articleId'), articleId))
+      .filter((q) => q.eq(q.field('userId'), userId))
+      .first();
+
+    if (existingLike) {
+      // User already liked, remove the like
+      await ctx.db.delete(existingLike._id);
+      return { liked: false };
+    } else {
+      // Add new like
+      await ctx.db.insert('likes', {
+        articleId,
+        userId,
+        createdAt: now,
+      });
+      return { liked: true };
+    }
+  },
+});
+
+export const getLikeStatus = query({
+  args: {
+    articleId: v.id('articles'),
+    userId: v.optional(v.string()),
+  },
+  handler: async (ctx, { articleId, userId }) => {
+    const like = await ctx.db
+      .query('likes')
+      .filter((q) => q.eq(q.field('articleId'), articleId))
+      .filter((q) => q.eq(q.field('userId'), userId))
+      .first();
+
+    return { liked: !!like };
   },
 });
