@@ -25,8 +25,8 @@ export default defineSchema({
     slug: v.string(),
     content: v.string(),
     excerpt: v.string(),
-    // ✅ Only store the storageId — URL is resolved at query time via storage.getUrl()
-    featuredImageId: v.optional(v.id('_storage')),
+    // ✅ Store multiple featured image storageIds
+    featuredImageIds: v.optional(v.array(v.id('_storage'))),
     // ✅ Removed featuredImage: v.optional(v.string()) — was storing expired blob URLs
     images: v.optional(v.array(v.object({
       storageId: v.id('_storage'),
@@ -42,6 +42,23 @@ export default defineSchema({
     tags: v.optional(v.array(v.string())),
     featured: v.boolean(),
   }).index('by_category', ['categoryId']),
+
+  // Article Comments
+  comments: defineTable({
+    articleId: v.id('articles'),
+    authorName: v.string(),
+    authorEmail: v.optional(v.string()),
+    content: v.string(),
+    createdAt: v.string(),
+    parentId: v.optional(v.id('comments')), // For nested replies
+  }).index('by_article', ['articleId']),
+
+  // Article Likes
+  likes: defineTable({
+    articleId: v.id('articles'),
+    userId: v.optional(v.string()), // Could be IP or session ID for anonymous users
+    createdAt: v.string(),
+  }).index('by_article', ['articleId']),
 
   // Article Submissions
   submissions: defineTable({

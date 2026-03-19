@@ -7,7 +7,7 @@ interface ArticleDisplayProps {
     title: string;
     excerpt: string;
     content: string;
-    featuredImage?: string;
+    featuredImages?: string[];
     images?: Array<{ url: string; caption?: string }>;
     author?: { name: string; bio: string; photo?: string; _id?: string };
     category?: { name: string; slug: string };
@@ -96,6 +96,23 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           display: block;
           object-fit: cover;
           max-height: 260px;   /* phone: generous hero height */
+        }
+
+        .featured-gallery {
+          display: grid;
+          grid-template-columns: 2fr 1fr;
+          gap: 4px;
+          height: 260px;
+        }
+
+        .featured-gallery img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+        }
+
+        .featured-gallery img:first-child {
+          grid-row: span 2;
         }
 
         /* ─────────────────────────────────────────────
@@ -330,6 +347,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
             max-height: 360px;
           }
 
+          .featured-gallery {
+            height: 360px;
+          }
+
           /* Two-column gallery on tablet */
           .gallery-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -386,6 +407,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
             max-height: 420px;
           }
 
+          .featured-gallery {
+            height: 420px;
+          }
+
           .gallery-grid {
             grid-template-columns: repeat(2, 1fr);
           }
@@ -439,6 +464,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
           .featured-img-outer img {
             max-height: 520px;
+          }
+
+          .featured-gallery {
+            height: 520px;
           }
 
           .gallery-grid {
@@ -498,6 +527,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
             max-height: 580px;
           }
 
+          .featured-gallery {
+            height: 580px;
+          }
+
           .related-inner {
             max-width: 1200px;
           }
@@ -522,10 +555,18 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
       <div className="article-page">
 
-        {/* ── Full-bleed featured image ABOVE the white card ── */}
-        {article.featuredImage && (
+        {/* ── Full-bleed featured images ABOVE the white card ── */}
+        {article.featuredImages && article.featuredImages.length > 0 && (
           <div className="featured-img-outer">
-            <img src={article.featuredImage} alt={article.title} />
+            {article.featuredImages.length === 1 ? (
+              <img src={article.featuredImages[0]} alt={article.title} />
+            ) : (
+              <div className="featured-gallery">
+                {article.featuredImages.slice(0, 3).map((img, index) => (
+                  <img key={index} src={img} alt={`${article.title} - ${index + 1}`} />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -764,10 +805,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
                 {relatedArticles.map((related) => (
                   <Link key={related._id} href={`/article/${related.slug}`} style={{ textDecoration: 'none' }}>
                     <div className="related-card">
-                      {related.featuredImage && (
+                      {(related.featuredImage || (related.featuredImages && related.featuredImages.length > 0)) && (
                         <div style={{ height: 150, overflow: 'hidden', marginBottom: 12, borderRadius: 2 }}>
                           <img
-                            src={related.featuredImage}
+                            src={related.featuredImage || related.featuredImages[0]}
                             alt={related.title}
                             style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block', transition: 'transform 0.3s ease' }}
                             onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.04)')}

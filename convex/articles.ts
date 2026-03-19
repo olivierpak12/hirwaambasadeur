@@ -7,17 +7,27 @@ async function enrichArticle(ctx: any, article: any) {
   const category = await ctx.db.get(article.categoryId);
 
   // Prefer explicit remote URLs when present (legacy data); otherwise resolve storage IDs.
-  let featuredImage: string | undefined;
+  let featuredImages: string[] | undefined;
   const hasRemoteFeaturedImage =
     typeof article.featuredImage === 'string' && /^https?:\/\//.test(article.featuredImage);
   if (hasRemoteFeaturedImage) {
-    featuredImage = article.featuredImage;
-  } else if (article.featuredImageId) {
+    featuredImages = [article.featuredImage];
+  } else if (article.featuredImageIds && Array.isArray(article.featuredImageIds)) {
     try {
-      const url = await ctx.storage.getUrl(article.featuredImageId);
-      if (url) featuredImage = url;
+      const urls = await Promise.all(
+        article.featuredImageIds.map(async (id: any) => {
+          try {
+            const url = await ctx.storage.getUrl(id);
+            return url;
+          } catch (e) {
+            console.error('Failed to get featured image URL:', e);
+            return null;
+          }
+        })
+      );
+      featuredImages = urls.filter(Boolean) as string[];
     } catch (e) {
-      console.error('Failed to get featured image URL:', e);
+      console.error('Failed to get featured images URLs:', e);
     }
   }
 
@@ -44,18 +54,33 @@ async function enrichArticle(ctx: any, article: any) {
       )
     ).filter(Boolean) as { url: string; caption?: string }[];
 
-    // If no explicit featured image was set, fall back to the first gallery image.
-    if (!featuredImage && images.length > 0) {
-      featuredImage = images[0].url;
+    // If no explicit featured images were set, fall back to the first gallery image.
+    if ((!featuredImages || featuredImages.length === 0) && images && images.length > 0) {
+      featuredImages = [images[0].url];
     }
   }
 
+  // Get comment and like counts
+  const commentCount = await ctx.db
+    .query('comments')
+    .filter((q) => q.eq(q.field('articleId'), article._id))
+    .collect()
+    .then((comments) => comments.length);
+
+  const likeCount = await ctx.db
+    .query('likes')
+    .filter((q) => q.eq(q.field('articleId'), article._id))
+    .collect()
+    .then((likes) => likes.length);
+
   return {
     ...article,
-    featuredImage,
+    featuredImages,
     images,
     author: author ?? undefined,
     category: category ?? undefined,
+    commentCount,
+    likeCount,
   };
 }
 
@@ -162,7 +187,7 @@ export const createArticle = mutation({
     slug: v.string(),
     content: v.string(),
     excerpt: v.string(),
-    featuredImageId: v.optional(v.id('_storage')),
+    featuredImageIds: v.optional(v.array(v.id('_storage'))),
     // Legacy support: the UI may send blob URLs for preview, but we don't store them.
     featuredImage: v.optional(v.string()),
     images: v.optional(
@@ -186,7 +211,7 @@ export const createArticle = mutation({
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
-    const { featuredImageId, images, featuredImage, ...articleData } = args;
+    const { featuredImageIds, images, featuredImage, ...articleData } = args;
 
     const sanitizedImages = images?.length
       ? images.map((img) => ({ storageId: img.storageId, caption: img.caption }))
@@ -194,7 +219,7 @@ export const createArticle = mutation({
 
     return await ctx.db.insert('articles', {
       ...articleData,
-      featuredImageId,
+      featuredImageIds,
       images: sanitizedImages,
       publishedAt: args.status === 'published' ? now : undefined,
       updatedAt: now,

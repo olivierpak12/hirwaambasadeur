@@ -85,8 +85,7 @@ export default function CreateArticlePage() {
   const [category, setCategory]               = useState('');
   const [tags, setTags]                       = useState<string[]>([]);
   const [tagInput, setTagInput]               = useState('');
-  const [featuredImage, setFeaturedImage]     = useState('');
-  const [featuredImageId, setFeaturedImageId] = useState('');
+  const [featuredImages, setFeaturedImages] = useState<Array<{ storageId: string; caption: string }>>([]);
   const [images, setImages] = useState<Array<{ storageId: string; caption: string }>>([]);
   const [status, setStatus]                   = useState('draft');
   const [saving, setSaving]                   = useState(false);
@@ -97,11 +96,6 @@ export default function CreateArticlePage() {
   const wordCount  = content.trim() ? content.trim().split(/\s+/).length : 0;
   const readTime   = Math.max(1, Math.round(wordCount / 200));
   const isReady    = title.trim() && content.trim() && category;
-
-  const handleImageUpload = (url: string, storageId: string) => {
-    setFeaturedImage(url);
-    setFeaturedImageId(storageId);
-  };
 
   const addTag = () => {
     const t = tagInput.trim().toLowerCase().replace(/\s+/g, '-');
@@ -153,20 +147,13 @@ export default function CreateArticlePage() {
         });
       }
 
-      // Decide whether to persist a URL or only keep the storage id.
-      // Blob URLs are temporary and won't work after a page refresh, so we only store them for preview.
-      const storedFeaturedImage = featuredImage && (featuredImage.startsWith('http://') || featuredImage.startsWith('https://'))
-        ? featuredImage
-        : undefined;
-
       // Create article
       await createArticle({
         title,
         slug,
         content,
         excerpt,
-        featuredImageId: featuredImageId ? (featuredImageId as any) : undefined,
-        featuredImage: storedFeaturedImage,
+        featuredImageIds: featuredImages.length > 0 ? featuredImages.map(img => img.storageId as any) : undefined,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
           caption: img.caption,
@@ -188,8 +175,7 @@ export default function CreateArticlePage() {
       setCategory('');
       setTags([]);
       setTagInput('');
-      setFeaturedImage('');
-      setFeaturedImageId('');
+      setFeaturedImages([]);
       setImages([]);
       setStatus('draft');
     } catch (err) {
@@ -512,14 +498,14 @@ export default function CreateArticlePage() {
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 10, color: '#3a6a4a', marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   <span>Completeness</span>
                   <span style={{ color: '#c9a84c', fontWeight: 700 }}>
-                    {Math.round(([title, excerpt, content, category, featuredImage].filter(Boolean).length / 5) * 100)}%
+                    {Math.round(([title, excerpt, content, category, featuredImages.length > 0].filter(Boolean).length / 5) * 100)}%
                   </span>
                 </div>
                 <div style={{ height: 4, background: 'rgba(255,255,255,0.05)', borderRadius: 2, overflow: 'hidden' }}>
                   <div style={{
                     height: '100%', borderRadius: 2,
                     background: 'linear-gradient(90deg, #b8942a, #d4aa48)',
-                    width: `${([title, excerpt, content, category, featuredImage].filter(Boolean).length / 5) * 100}%`,
+                    width: `${([title, excerpt, content, category, featuredImages.length > 0].filter(Boolean).length / 5) * 100}%`,
                     transition: 'width 0.3s ease',
                   }} />
                 </div>
@@ -529,7 +515,7 @@ export default function CreateArticlePage() {
                     { label: 'Excerpt',       done: !!excerpt },
                     { label: 'Body',          done: !!content },
                     { label: 'Category',      done: !!category },
-                    { label: 'Featured Image',done: !!featuredImage },
+                    { label: 'Featured Image',done: featuredImages.length > 0 },
                   ].map(item => (
                     <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: 7, fontSize: 11 }}>
                       <span style={{
@@ -641,24 +627,14 @@ export default function CreateArticlePage() {
             }}>
               <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(201,168,76,0.08)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 3, height: 14, background: '#c9a84c', borderRadius: 2 }} />
-                <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Featured Image</span>
+                <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Featured Images (up to 5)</span>
               </div>
               <div style={{ padding: '14px' }}>
-                <ImageUpload
-                  onUploadComplete={handleImageUpload}
-                  currentImage={featuredImage}
-                  label="Upload Photo"
+                <MultiImageUpload
+                  onImagesChange={setFeaturedImages}
+                  maxImages={5}
+                  label="Upload featured photos"
                 />
-                {featuredImage && (
-                  <div style={{
-                    display: 'flex', alignItems: 'center', gap: 6, marginTop: 10,
-                    background: 'rgba(201,168,76,0.06)', border: '1px solid rgba(201,168,76,0.15)',
-                    borderRadius: 3, padding: '6px 10px',
-                  }}>
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#c9a84c" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-                    <span style={{ fontSize: 11, color: '#8aaa6a' }}>Image uploaded and ready</span>
-                  </div>
-                )}
               </div>
             </div>
 
