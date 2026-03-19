@@ -29,6 +29,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   const [authorName, setAuthorName] = useState('');
   const [authorEmail, setAuthorEmail] = useState('');
   const [showComments, setShowComments] = useState(false);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
+  const featuredImages = article.featuredImages ?? [];
+  const galleryImages = Array.from(new Set([...(featuredImages || []), ...(article.images?.map((i) => i.url) ?? [])]));
 
   const publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -46,6 +50,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   });
   const addComment = useMutation(api.articles.addComment);
   const addLike = useMutation(api.articles.addLike);
+
+  const handleImageError = (imageSrc: string) => {
+    setFailedImages((prev) => new Set([...prev, imageSrc]));
+  };
 
   const handleShare = (platform: string) => {
     const urls: Record<string, string> = {
@@ -138,30 +146,61 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           width: 100%;
           margin-bottom: 0;
           overflow: hidden;
+          background: #f0f0f0;
         }
 
         .featured-img-outer img {
           width: 100%;
           display: block;
           object-fit: cover;
-          max-height: 260px;   /* phone: generous hero height */
+          height: auto;
+          min-height: 180px;
+          max-height: 280px;
         }
 
         .featured-gallery {
           display: grid;
-          grid-template-columns: 2fr 1fr;
+          grid-template-columns: 1fr;
           gap: 4px;
-          height: 260px;
+          height: auto;
+          min-height: 240px;
         }
 
         .featured-gallery img {
           width: 100%;
-          height: 100%;
+          height: auto;
+          min-height: 180px;
           object-fit: cover;
+          display: block;
         }
 
         .featured-gallery img:first-child {
-          grid-row: span 2;
+          grid-row: span 1;
+        }
+
+        /* Tablet: 2-column gallery */
+        @media (min-width: 600px) {
+          .featured-gallery {
+            grid-template-columns: 2fr 1fr;
+            height: 360px;
+            gap: 6px;
+          }
+
+          .featured-gallery img {
+            height: 100%;
+            min-height: unset;
+          }
+
+          .featured-gallery img:first-child {
+            grid-row: span 2;
+          }
+        }
+
+        /* Laptop: 2-column gallery continues */
+        @media (min-width: 1080px) {
+          .featured-gallery {
+            height: 420px;
+          }
         }
 
         /* ─────────────────────────────────────────────
@@ -393,11 +432,11 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           }
 
           .featured-img-outer img {
-            max-height: 360px;
+            max-height: 380px;
           }
 
           .featured-gallery {
-            height: 360px;
+            height: 380px;
           }
 
           /* Two-column gallery on tablet */
@@ -459,8 +498,6 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           .featured-gallery {
             height: 420px;
           }
-
-          .gallery-grid {
             grid-template-columns: repeat(2, 1fr);
           }
 
@@ -508,15 +545,15 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
           .featured-img-outer {
             /* Full-bleed hero on laptop */
-            max-height: 520px;
+            max-height: none;
           }
 
           .featured-img-outer img {
-            max-height: 520px;
+            max-height: 540px;
           }
 
           .featured-gallery {
-            height: 520px;
+            height: 480px;
           }
 
           .gallery-grid {
@@ -577,7 +614,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           }
 
           .featured-gallery {
-            height: 580px;
+            height: 540px;
           }
 
           .related-inner {
@@ -605,14 +642,57 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
       <div className="article-page">
 
         {/* ── Full-bleed featured images ABOVE the white card ── */}
-        {article.featuredImages && article.featuredImages.length > 0 && (
+        {featuredImages.length > 0 && (
           <div className="featured-img-outer">
-            {article.featuredImages.length === 1 ? (
-              <img src={article.featuredImages[0]} alt={article.title} />
+            {featuredImages.length === 1 ? (
+              <div style={{ position: 'relative', width: '100%' }}>
+                {!failedImages.has(featuredImages[0]) ? (
+                  <img
+                    src={featuredImages[0]}
+                    alt={article.title}
+                    onError={() => handleImageError(featuredImages[0])}
+                  />
+                ) : (
+                  <div style={{
+                    width: '100%',
+                    minHeight: '180px',
+                    maxHeight: '280px',
+                    background: 'linear-gradient(135deg, #1a3d28 0%, #2d6f4d 50%, #4a9b6f 100%)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#fff',
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontSize: 24,
+                    fontWeight: 600,
+                    padding: '20px',
+                    textAlign: 'center',
+                  }}>
+                    {article.title}
+                  </div>
+                )}
+              </div>
             ) : (
               <div className="featured-gallery">
-                {article.featuredImages.slice(0, 3).map((img, index) => (
-                  <img key={index} src={img} alt={`${article.title} - ${index + 1}`} />
+                {featuredImages.map((img, index) => (
+                  <div key={index} style={{ position: 'relative', width: '100%', height: '100%' }}>
+                    {!failedImages.has(img) ? (
+                      <img
+                        src={img}
+                        alt={`${article.title} - ${index + 1}`}
+                        onError={() => handleImageError(img)}
+                      />
+                    ) : (
+                      <div style={{
+                        width: '100%',
+                        height: '100%',
+                        background: `linear-gradient(135deg, ${['#1a3d28', '#bb1919', '#c9a84c'][index % 3]} 0%, ${['#2d6f4d', '#d91e1e', '#e0c055'][index % 3]} 100%)`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}></div>
+                    )}
+                  </div>
                 ))}
               </div>
             )}

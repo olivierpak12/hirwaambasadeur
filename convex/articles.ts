@@ -6,12 +6,21 @@ async function enrichArticle(ctx: any, article: any) {
   const author = await ctx.db.get(article.authorId);
   const category = await ctx.db.get(article.categoryId);
 
-  // Prefer explicit remote URLs when present (legacy data); otherwise resolve storage IDs.
+  // Prefer explicit remote URLs when present (legacy data);
+  // otherwise resolve storage IDs (both old single ID + new multiple IDs).
   let featuredImages: string[] | undefined;
+
   const hasRemoteFeaturedImage =
     typeof article.featuredImage === 'string' && /^https?:\/\//.test(article.featuredImage);
   if (hasRemoteFeaturedImage) {
     featuredImages = [article.featuredImage];
+  } else if (typeof article.featuredImageId === 'string') {
+    try {
+      const url = await ctx.storage.getUrl(article.featuredImageId);
+      if (url) featuredImages = [url];
+    } catch (e) {
+      console.error('Failed to get legacy featured image URL:', e);
+    }
   } else if (article.featuredImageIds && Array.isArray(article.featuredImageIds)) {
     try {
       const urls = await Promise.all(
@@ -64,8 +73,16 @@ async function enrichArticle(ctx: any, article: any) {
   const commentCount = (await ctx.db.query('comments').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
   const likeCount = (await ctx.db.query('likes').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
 
+  const resolvedFeaturedImage =
+    hasRemoteFeaturedImage
+      ? article.featuredImage
+      : featuredImages && featuredImages.length > 0
+      ? featuredImages[0]
+      : undefined;
+
   return {
     ...article,
+    featuredImage: resolvedFeaturedImage,
     featuredImages,
     images,
     author: author ?? undefined,
