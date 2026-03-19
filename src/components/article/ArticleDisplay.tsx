@@ -30,9 +30,10 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   const [authorEmail, setAuthorEmail] = useState('');
   const [showComments, setShowComments] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [lightboxImage, setLightboxImage] = useState<{ url: string; caption?: string } | null>(null);
+  const [lightboxImageIndex, setLightboxImageIndex] = useState<number>(-1);
 
   const featuredImages = article.featuredImages ?? [];
-  const galleryImages = Array.from(new Set([...(featuredImages || []), ...(article.images?.map((i) => i.url) ?? [])]));
 
   const publishDate = new Date(article.publishedAt).toLocaleDateString('en-US', {
     year: 'numeric',
@@ -92,6 +93,30 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
     } catch (error) {
       console.error('Failed to add comment:', error);
     }
+  };
+
+  const handleOpenLightbox = (image: { url: string; caption?: string }, index: number) => {
+    setLightboxImage(image);
+    setLightboxImageIndex(index);
+  };
+
+  const handlePrevImage = () => {
+    if (!article.images || article.images.length === 0) return;
+    const newIndex = lightboxImageIndex === 0 ? article.images.length - 1 : lightboxImageIndex - 1;
+    setLightboxImage(article.images[newIndex]);
+    setLightboxImageIndex(newIndex);
+  };
+
+  const handleNextImage = () => {
+    if (!article.images || article.images.length === 0) return;
+    const newIndex = lightboxImageIndex === article.images.length - 1 ? 0 : lightboxImageIndex + 1;
+    setLightboxImage(article.images[newIndex]);
+    setLightboxImageIndex(newIndex);
+  };
+
+  const closeLightbox = () => {
+    setLightboxImage(null);
+    setLightboxImageIndex(-1);
   };
 
   return (
@@ -318,12 +343,201 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
         }
 
         /* ─────────────────────────────────────────────
-           GALLERY
+           GALLERY — Professional Masonry Layout
         ───────────────────────────────────────────── */
         .gallery-grid {
           display: grid;
-          gap: 10px;
+          gap: 14px;
           grid-template-columns: 1fr;
+          margin-top: 28px;
+          margin-bottom: 28px;
+        }
+
+        .gallery-item {
+          position: relative;
+          overflow: hidden;
+          border-radius: 2px;
+          background: #f0f0f0;
+          cursor: pointer;
+          transition: all 0.3s ease;
+        }
+
+        .gallery-item:hover {
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+          transform: translateY(-2px);
+        }
+
+        .gallery-item img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+          display: block;
+          transition: transform 0.4s ease;
+        }
+
+        .gallery-item:hover img {
+          transform: scale(1.02);
+        }
+
+        .gallery-caption-overlay {
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+          color: white;
+          padding: 20px 14px 14px;
+          font-family: 'Source Serif 4', Georgia, serif;
+          font-size: 13px;
+          line-height: 1.5;
+          opacity: 0;
+          transition: opacity 0.3s ease;
+        }
+
+        .gallery-item:hover .gallery-caption-overlay {
+          opacity: 1;
+        }
+
+        /* Lightbox */
+        .lightbox-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.95);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 9999;
+          padding: 20px;
+          animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+
+        .lightbox-content {
+          position: relative;
+          width: 100%;
+          max-width: 900px;
+          max-height: 90vh;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+        }
+
+        .lightbox-image {
+          width: 100%;
+          max-height: 75vh;
+          object-fit: contain;
+          border-radius: 2px;
+        }
+
+        .lightbox-caption {
+          color: white;
+          padding: 20px 0;
+          text-align: center;
+          font-family: 'Source Serif 4', Georgia, serif;
+          font-size: 14px;
+          line-height: 1.6;
+          max-width: 100%;
+        }
+
+        .lightbox-close {
+          position: absolute;
+          top: -40px;
+          right: 0;
+          color: white;
+          font-size: 28px;
+          cursor: pointer;
+          transition: color 0.2s;
+          background: none;
+          border: none;
+          padding: 0;
+          width: 40px;
+          height: 40px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .lightbox-close:hover {
+          color: #c9a84c;
+        }
+
+        /* Lightbox Navigation */
+        .lightbox-nav-btn {
+          position: absolute;
+          top: 50%;
+          transform: translateY(-50%);
+          width: 48px;
+          height: 48px;
+          background: rgba(255, 255, 255, 0.15);
+          border: 1.5px solid rgba(255, 255, 255, 0.3);
+          color: white;
+          font-size: 24px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          border-radius: 4px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .lightbox-nav-btn:hover {
+          background: rgba(255, 255, 255, 0.25);
+          border-color: rgba(255, 255, 255, 0.5);
+          transform: translateY(-50%) scale(1.1);
+        }
+
+        .lightbox-nav-prev {
+          left: 20px;
+        }
+
+        .lightbox-nav-next {
+          right: 20px;
+        }
+
+        .lightbox-counter {
+          position: absolute;
+          top: 20px;
+          left: 50%;
+          transform: translateX(-50%);
+          color: white;
+          font-family: 'DM Sans', sans-serif;
+          font-size: 13px;
+          font-weight: 500;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          background: rgba(0, 0, 0, 0.3);
+          padding: 8px 14px;
+          border-radius: 20px;
+          backdrop-filter: blur(4px);
+        }
+
+        @media (max-width: 640px) {
+          .lightbox-nav-btn {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+          }
+
+          .lightbox-nav-prev {
+            left: 12px;
+          }
+
+          .lightbox-nav-next {
+            right: 12px;
+          }
+
+          .lightbox-counter {
+            font-size: 11px;
+            padding: 6px 12px;
+            top: 10px;
+          }
         }
 
         /* ─────────────────────────────────────────────
@@ -439,11 +653,6 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
             height: 380px;
           }
 
-          /* Two-column gallery on tablet */
-          .gallery-grid {
-            grid-template-columns: repeat(2, 1fr);
-          }
-
           /* Two-column related on tablet */
           .related-grid {
             grid-template-columns: repeat(2, 1fr);
@@ -467,6 +676,36 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           .share-btn {
             padding: 10px 18px;
             font-size: 12px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────
+           ── ANDROID TABLET: 600px – 839px ──
+        ───────────────────────────────────────────── */
+        @media (min-width: 600px) and (max-width: 839px) {
+          .gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────
+           ── ANDROID TABLET LANDSCAPE + LARGE TABLET: 840px – 1079px ──
+        ───────────────────────────────────────────── */
+        @media (min-width: 840px) and (max-width: 1079px) {
+          .gallery-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 18px;
+          }
+        }
+
+        /* ─────────────────────────────────────────────
+           ── LAPTOP / DESKTOP: 1080px+ ──
+        ───────────────────────────────────────────── */
+        @media (min-width: 1080px) {
+          .gallery-grid {
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
           }
         }
 
@@ -498,6 +737,8 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           .featured-gallery {
             height: 420px;
           }
+
+          .gallery-grid {
             grid-template-columns: repeat(2, 1fr);
           }
 
@@ -557,8 +798,8 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           }
 
           .gallery-grid {
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 12px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
           }
 
           .related-grid {
@@ -794,38 +1035,36 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
           </div>{/* /article-text-pad — close before gallery so images are full-bleed */}
 
-            {/* ── Gallery — full bleed on mobile ── */}
+            {/* ── Gallery — Professional Masonry Layout ── */}
             {article.images && article.images.length > 0 && (
-              <div style={{ marginTop: 24, marginBottom: 24 }}>
-                <div className="article-text-pad" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+              <div style={{ marginTop: 28, marginBottom: 28 }}>
+                <div className="article-text-pad" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
                   <span style={{
                     fontFamily: "'DM Sans', sans-serif",
-                    fontSize: 10, fontWeight: 600,
+                    fontSize: 11, fontWeight: 600,
                     letterSpacing: '0.12em', textTransform: 'uppercase',
-                    color: '#888', whiteSpace: 'nowrap',
+                    color: '#1a1a1a', whiteSpace: 'nowrap',
                   }}>
-                    Photo Gallery
+                    Photo Gallery ({article.images.length})
                   </span>
                   <div style={{ flex: 1, height: 1, background: '#e8e2d4' }} />
                 </div>
                 <div className="gallery-grid">
                   {article.images.map((img, idx) => (
-                    <div key={idx} style={{ overflow: 'hidden' }}>
+                    <div 
+                      key={idx} 
+                      className="gallery-item"
+                      onClick={() => handleOpenLightbox(img, idx)}
+                      style={{ minHeight: 240 }}
+                    >
                       <img
                         src={img.url}
                         alt={img.caption || `Gallery image ${idx + 1}`}
-                        style={{ width: '100%', height: 220, objectFit: 'cover', display: 'block', transition: 'transform 0.3s ease' }}
-                        onMouseEnter={e => (e.currentTarget.style.transform = 'scale(1.03)')}
-                        onMouseLeave={e => (e.currentTarget.style.transform = 'scale(1)')}
                       />
                       {img.caption && (
-                        <p className="article-text-pad" style={{
-                          fontFamily: "'DM Sans', sans-serif",
-                          fontSize: 12, color: '#777',
-                          paddingTop: 7, lineHeight: 1.4, margin: 0,
-                        }}>
+                        <div className="gallery-caption-overlay">
                           {img.caption}
-                        </p>
+                        </div>
                       )}
                     </div>
                   ))}
@@ -1063,6 +1302,69 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
         )}
 
       </div>{/* /article-page */}
+
+      {/* ── Lightbox Modal with Navigation ── */}
+      {lightboxImage && article.images && article.images.length > 0 && (
+        <div 
+          className="lightbox-overlay"
+          onClick={() => closeLightbox()}
+        >
+          <div 
+            className="lightbox-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Close Button */}
+            <button 
+              className="lightbox-close"
+              onClick={() => closeLightbox()}
+              aria-label="Close lightbox"
+            >
+              ✕
+            </button>
+
+            {/* Image Counter */}
+            {article.images.length > 1 && (
+              <div className="lightbox-counter">
+                {lightboxImageIndex + 1} of {article.images.length}
+              </div>
+            )}
+
+            {/* Main Image */}
+            <img 
+              src={lightboxImage.url} 
+              alt={lightboxImage.caption || 'Full-size gallery image'}
+              className="lightbox-image"
+            />
+
+            {/* Navigation Buttons */}
+            {article.images.length > 1 && (
+              <>
+                <button 
+                  className="lightbox-nav-btn lightbox-nav-prev"
+                  onClick={handlePrevImage}
+                  aria-label="Previous image"
+                >
+                  ❮
+                </button>
+                <button 
+                  className="lightbox-nav-btn lightbox-nav-next"
+                  onClick={handleNextImage}
+                  aria-label="Next image"
+                >
+                  ❯
+                </button>
+              </>
+            )}
+
+            {/* Caption */}
+            {lightboxImage.caption && (
+              <div className="lightbox-caption">
+                {lightboxImage.caption}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
