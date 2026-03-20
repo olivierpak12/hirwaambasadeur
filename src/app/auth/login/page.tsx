@@ -175,23 +175,6 @@ export default function AdminLoginPage() {
           color: #c9a84c;
         }
 
-        .forgot-password {
-          text-align: right;
-          margin-top: 8px;
-        }
-
-        .forgot-password a {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 12px;
-          color: #1a3d28;
-          text-decoration: none;
-          transition: color 0.2s;
-        }
-
-        .forgot-password a:hover {
-          color: #c9a84c;
-        }
-
         .loading-spinner {
           display: inline-block;
           width: 12px;
@@ -267,9 +250,6 @@ export default function AdminLoginPage() {
                 disabled={isLoading}
                 required
               />
-              <div className="forgot-password">
-                <Link href="/auth/forgot-password">Forgot password?</Link>
-              </div>
             </div>
 
             <button
