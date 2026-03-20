@@ -309,3 +309,51 @@ export const deactivateAdmin = mutation({
     return { success: true, message: 'Admin deactivated' };
   },
 });
+
+/**
+ * DEBUG: Check all admins in database
+ */
+export const debugGetAllAdmins = query({
+  args: {},
+  handler: async (ctx) => {
+    const admins = await ctx.db.query('admins').collect();
+    return admins.map((a) => ({
+      _id: a._id,
+      email: a.email,
+      name: a.name,
+      role: a.role,
+      isActive: a.isActive,
+      createdAt: a.createdAt,
+    }));
+  },
+});
+
+/**
+ * DEBUG: Test password hashing
+ */
+export const debugTestPassword = mutation({
+  args: { email: v.string(), password: v.string() },
+  handler: async (ctx, args) => {
+    const admin = await ctx.db
+      .query('admins')
+      .withIndex('by_email', (q) => q.eq('email', args.email.toLowerCase()))
+      .first();
+
+    if (!admin) {
+      return { found: false, message: 'Admin not found' };
+    }
+
+    const passwordHash = await hashPassword(args.password);
+    const passwordMatches = await verifyPassword(args.password, admin.passwordHash);
+
+    return {
+      found: true,
+      email: admin.email,
+      isActive: admin.isActive,
+      passwordMatches,
+      inputPassword: args.password,
+      computedHash: passwordHash,
+      storedHash: admin.passwordHash,
+    };
+  },
+});

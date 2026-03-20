@@ -21,9 +21,12 @@ export default function AdminLoginPage() {
     setIsLoading(true);
 
     try {
+      console.log('Attempting login with email:', email);
       const result = await login({ email, password });
+      console.log('Login result:', result);
 
       if (result.success) {
+        console.log('Login successful, storing token and redirecting');
         // Store token in localStorage
         localStorage.setItem('adminToken', result.token);
         localStorage.setItem('adminEmail', result.admin.email);
@@ -32,9 +35,24 @@ export default function AdminLoginPage() {
 
         // Redirect to admin dashboard
         router.push('/admin/create');
+      } else {
+        setError('Login failed. Please check your credentials.');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed. Please try again.');
+      console.error('Login error:', err);
+      let errorMessage = 'Login failed. Please try again.';
+      
+      if (err && typeof err === 'object') {
+        if (err.message) {
+          errorMessage = err.message;
+        } else if (err.data && err.data.message) {
+          errorMessage = err.data.message;
+        } else if (typeof err === 'string') {
+          errorMessage = err;
+        }
+      }
+      
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
