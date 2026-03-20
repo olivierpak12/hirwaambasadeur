@@ -21,17 +21,16 @@ const footerSections = [
       { label: 'Health',        href: '/categories/health' },
       { label: 'Sports',        href: '/categories/sports' },
       { label: 'Entertainment', href: '/categories/entertainment' },
-      { label: 'Science',       href: '/categories/science' },
+      { label: 'Submit News',   href: '/submit' },
     ],
   },
   {
     title: 'Company',
     links: [
       { label: 'About Us',      href: '/about' },
-      { label: 'Our Team',      href: '/team' },
-      { label: 'Careers',       href: '/careers' },
-      { label: 'Advertise',     href: '/advertise' },
       { label: 'Contact',       href: '/contact' },
+      { label: 'Privacy Policy', href: '/privacy-policy' },
+      { label: 'Terms of Service', href: '/terms-of-service' },
     ],
   },
 ];
