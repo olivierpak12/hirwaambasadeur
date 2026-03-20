@@ -206,6 +206,32 @@ export const getAuthorById = query({
   },
 });
 
+export const getAuthorByName = query({
+  args: { authorName: v.string() },
+  returns: v.any(),
+  handler: async (ctx, { authorName }) => {
+    const author = await ctx.db
+      .query('authors')
+      .filter((q) => q.eq(q.field('name'), authorName))
+      .first();
+
+    if (!author) return null;
+
+    const articles = await ctx.db
+      .query('articles')
+      .filter((q) => q.eq(q.field('status'), 'published'))
+      .filter((q) => q.eq(q.field('authorId'), author._id))
+      .order('desc')
+      .take(20);
+
+    const enrichedArticles = await Promise.all(
+      articles.map((article) => enrichArticle(ctx, article) as any)
+    );
+
+    return { ...author, articles: enrichedArticles };
+  },
+});
+
 export const getRelatedArticles = query({
   args: {
     articleId: v.string(),

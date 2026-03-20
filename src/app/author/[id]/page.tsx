@@ -7,9 +7,9 @@ import { api } from '@/convex/_generated/api';
 
 export default function AuthorPage() {
   const params = useParams();
-  const authorId = params.id as unknown as any;
+  const authorName = decodeURIComponent(params.id as string);
 
-  const authorData = useQuery(api.articles.getAuthorById, { authorId });
+  const authorData = useQuery(api.articles.getAuthorByName, { authorName });
 
   if (!authorData) {
     return (

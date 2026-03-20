@@ -284,15 +284,19 @@ export default function CreateArticlePage() {
         background: 'rgba(7,15,9,0.95)',
         backdropFilter: 'blur(12px)',
         borderBottom: '1px solid rgba(201,168,76,0.1)',
-        padding: '0 16px',
+        padding: '8px 10px',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
       }}>
         <div style={{
           maxWidth: 1100, margin: '0 auto',
-          display: 'flex', alignItems: 'center', gap: 14,
-          height: 54,
+          display: 'flex', alignItems: 'center', gap: 6,
+          height: 'auto',
+          minHeight: 40,
+          flexWrap: 'wrap',
         }}>
           {/* Breadcrumb */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#3a6a4a', flex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12, color: '#3a6a4a', flex: 1 }} className="breadcrumb-mobile-hide">
             <span>Dashboard</span>
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="9 18 15 12 9 6"/></svg>
             <span>Articles</span>
@@ -476,7 +480,7 @@ export default function CreateArticlePage() {
       )}
 
       {/* ── Main content ───────────────────────────────────────────────── */}
-      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(20px,3vw,36px) 16px 60px' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', padding: 'clamp(12px, 2vw, 24px) 10px 50px' }}>
         <div className="editor-grid">
 
           {/* ═══ LEFT: Editor ═════════════════════════════════════════════ */}
@@ -642,7 +646,7 @@ export default function CreateArticlePage() {
                 <div style={{ width: 3, height: 14, background: '#c9a84c', borderRadius: 2 }} />
                 <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Article Stats</span>
               </div>
-              <div style={{ display: 'flex', borderBottom: '1px solid rgba(201,168,76,0.06)' }}>
+              <div style={{ display: 'flex', borderBottom: '1px solid rgba(201,168,76,0.06)' }} className="stat-container">
                 <Stat
                   icon={<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>}
                   label="Words" value={wordCount}
@@ -716,7 +720,7 @@ export default function CreateArticlePage() {
                     Loading categories...
                   </div>
                 ) : (
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }} className="category-grid">
                     {categories.map(cat => (
                       <button key={cat._id} onClick={() => setCategory(cat.name)} style={{
                         background: category === cat.name ? 'rgba(201,168,76,0.12)' : 'rgba(255,255,255,0.02)',
@@ -937,6 +941,12 @@ export default function CreateArticlePage() {
 
         textarea::placeholder, input::placeholder { color: #2a4a30; }
 
+        /* Top bar responsiveness */
+        div[style*="position: 'sticky'"] {
+          overflow-x: auto;
+          -webkit-overflow-scrolling: touch;
+        }
+
         .editor-grid {
           display: grid;
           grid-template-columns: 1fr;
@@ -944,8 +954,126 @@ export default function CreateArticlePage() {
         }
         @media (min-width: 860px) {
           .editor-grid {
-            grid-template-columns: minmax(0,1fr) 300px;
+            grid-template-columns: minmax(0, 1fr) 280px;
             gap: 28px;
+          }
+        }
+
+        /* Ensure sidebar is responsive */
+        .editor-grid > div:last-child {
+          width: 100%;
+        }
+        @media (min-width: 860px) {
+          .editor-grid > div:last-child {
+            width: auto;
+          }
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 900px) {
+          .topbar-nav-buttons {
+            display: none !important;
+          }
+          .topbar-draft-btn {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .breadcrumb-mobile-hide {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 640px) {
+          /* Ensure grid stacks vertically */
+          .editor-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+
+          /* Sidebar should be full width */
+          .editor-grid > div:last-child {
+            width: 100% !important;
+            display: flex !important;
+            flex-direction: column;
+            gap: 12px;
+          }
+
+          /* Side panel boxes */
+          div[style*="background: 'rgba(255,255,255,0.02)'"],
+          div[style*='background: "rgba(255,255,255,0.02)'] {
+            width: 100% !important;
+          }
+
+          /* Publish button - primary action */
+          button[style*="linear-gradient"] {
+            padding: 8px 12px !important;
+            font-size: 9px !important;
+          }
+          
+          /* Page title */
+          h1 {
+            font-size: 15px !important;
+            margin-bottom: 6px !important;
+          }
+          
+          /* Main content article text smaller on mobile */
+          p {
+            font-size: 12px;
+          }
+          
+          /* Input fields responsive - 16px prevents auto-zoom on iOS */
+          input[type="text"],
+          input[type="email"],
+          textarea,
+          select {
+            font-size: 16px !important;
+            padding: 10px 8px !important;
+            margin-bottom: 6px;
+            width: 100% !important;
+            box-sizing: border-box;
+          }
+          
+          /* Category grid - single column on mobile */
+          .category-grid {
+            grid-template-columns: 1fr !important;
+            gap: 5px !important;
+          }
+          
+          /* Stat cards responsive */
+          .stat-container {
+            flex-direction: column !important;
+            gap: 0 !important;
+          }
+          
+          /* Container padding */
+          div[style*="marginBottom: 28"] {
+            margin-bottom: 16px !important;
+          }
+          
+          div[style*="marginBottom: 20"] {
+            margin-bottom: 12px !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          h1 {
+            font-size: 14px !important;
+          }
+          p {
+            font-size: 11px;
+          }
+          
+          input, textarea, select {
+            font-size: 16px !important;
+            padding: 8px 6px !important;
+          }
+          
+          /* Stack buttons more compactly */
+          button {
+            padding: 6px 6px !important;
+            font-size: 8px !important;
           }
         }
       `}</style>
