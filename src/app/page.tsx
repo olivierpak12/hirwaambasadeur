@@ -6,6 +6,7 @@ import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Job, loadJobs, loadSeenJobIds, markJobsAsSeen } from '@/lib/jobs';
 import Newsletter from '@/components/home/Newsletter';
+import { HeaderAd, SidebarAd } from '@/components/common/AdPlacements';
 
 type Article = any;
 
@@ -801,6 +802,9 @@ export default function Home() {
     <div style={{ fontFamily: '"Helvetica Neue", Arial, sans-serif', background: '#f5f5f5', minHeight: '100vh' }}>
       <Header activeCategory={activeCategory} onCategory={setActiveCategory} menuOpen={menuOpen} setMenuOpen={setMenuOpen} />
       <BreakingTicker articles={articlesList.slice(0, 4)} />
+      
+      {/* Google AdSense Header Banner */}
+      <HeaderAd />
 
       {unseenJobs.length > 0 && (
         <div style={{ position: 'fixed', bottom: 18, right: 18, zIndex: 999, width: 320, boxShadow: '0 10px 30px rgba(0,0,0,0.25)', borderRadius: 12, background: 'rgba(0,0,0,0.9)', color: '#fff', padding: 14 }}>
@@ -861,7 +865,7 @@ export default function Home() {
 
             {/* Sidebar */}
             <aside style={{ background: '#fff', padding: '16px', borderLeft: '1px solid #e8e8e8' }}>
-              <AdBox />
+              <SidebarAd />
               <TrendingSidebar articles={trending} />
             </aside>
           </div>

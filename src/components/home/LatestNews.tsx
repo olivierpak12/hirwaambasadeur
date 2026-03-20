@@ -8,6 +8,7 @@ interface Article {
   excerpt: string;
   slug: string;
   featuredImage?: string;
+  featuredImageIds?: string[];
   author?: { name: string };
   category?: { name: string };
   publishedAt: string;
@@ -63,14 +64,19 @@ export default function LatestNews({ articles }: LatestNewsProps) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-[#2a4a35] border border-[#2a4a35] rounded-lg overflow-hidden">
         {articles.slice(3, 6).map((article) => (
           <Link key={article._id} href={`/article/${article.slug}`} className="block">
-            <div className="bg-[#f5f2eb] p-5 transition-colors hover:bg-[#eee8d8]">
+            <div className="bg-[#f5f2eb] p-5 h-full transition-colors hover:bg-[#eee8d8] flex flex-col">
+              {article.featuredImage && (
+                <div className="w-full h-32 bg-[#1a3d28] rounded mb-3 overflow-hidden">
+                  <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover" />
+                </div>
+              )}
               <div className="text-[#c9a84c] text-xs uppercase tracking-wider mb-2">
                 {article.category?.name}
               </div>
               <h3 className="font-serif text-sm font-normal leading-tight text-gray-900 mb-2 line-clamp-2">
                 {article.title}
               </h3>
-              <div className="flex justify-between text-xs text-gray-500 border-t border-[#ddd8cc] pt-2">
+              <div className="flex justify-between text-xs text-gray-500 border-t border-[#ddd8cc] pt-2 mt-auto">
                 <span>{article.author?.name}</span>
                 <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
               </div>

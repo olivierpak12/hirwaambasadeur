@@ -71,7 +71,11 @@ function HeroCard({ article, categoryLabel, index }: { article: any; categoryLab
         }}
       >
         <div style={{ position: 'relative' }}>
-          <PlaceholderImg index={index} height={260} />
+          {article.featuredImage ? (
+            <img src={article.featuredImage} alt={article.title} style={{ width: '100%', height: 260, objectFit: 'cover', display: 'block' }} />
+          ) : (
+            <PlaceholderImg index={index} height={260} />
+          )}
           <div style={{
             position: 'absolute', inset: 0,
             background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 55%)',
@@ -119,8 +123,12 @@ function ListCard({ article, categoryLabel, index }: { article: any; categoryLab
         onMouseEnter={e => (e.currentTarget.style.background = '#faf8f2')}
         onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       >
-        <div style={{ flexShrink: 0, width: 96, borderRadius: 3, overflow: 'hidden' }}>
-          <PlaceholderImg index={index} height={72} />
+        <div style={{ flexShrink: 0, width: 96, borderRadius: 3, overflow: 'hidden', background: '#f0f0f0' }}>
+          {article.featuredImage ? (
+            <img src={article.featuredImage} alt={article.title} style={{ width: '100%', height: 72, objectFit: 'cover' }} />
+          ) : (
+            <PlaceholderImg index={index} height={72} />
+          )}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <span style={{

@@ -6,6 +6,8 @@ interface Article {
   _id: string;
   title: string;
   slug: string;
+  featuredImage?: string;
+  featuredImageIds?: string[];
   views?: number;
   author?: { name: string };
   publishedAt: string;
@@ -31,7 +33,12 @@ export default function TrendingArticles({ articles }: TrendingArticlesProps) {
               <div className="font-serif text-xl font-normal text-[#2a4a35] min-w-8 leading-none">
                 {String(index + 1).padStart(2, '0')}
               </div>
-              <div>
+              <div className="flex-1">
+                {article.featuredImage && (
+                  <div className="w-full h-20 bg-[#1a3d28] rounded mb-2 overflow-hidden">
+                    <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover" />
+                  </div>
+                )}
                 <h3 className="font-serif text-sm text-white leading-tight">
                   {article.title}
                 </h3>

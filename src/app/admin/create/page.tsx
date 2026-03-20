@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import ImageUpload from '@/components/common/ImageUpload';
@@ -74,6 +75,24 @@ function Stat({ icon, label, value }: { icon: React.ReactNode; label: string; va
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function CreateArticlePage() {
+  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminName, setAdminName] = useState('');
+
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('adminToken');
+    const name = localStorage.getItem('adminName');
+
+    if (!token) {
+      router.push('/auth/login');
+      return;
+    }
+
+    setIsAuthenticated(true);
+    setAdminName(name || 'Admin');
+  }, [router]);
+
   const categories = useQuery(api.categories.getAllCategories);
   const authors = useQuery(api.authors.getAllAuthors);
   const createArticle = useMutation(api.articles.createArticle);
@@ -83,6 +102,7 @@ export default function CreateArticlePage() {
   const [excerpt, setExcerpt]                 = useState('');
   const [content, setContent]                 = useState('');
   const [category, setCategory]               = useState('');
+  const [author, setAuthor]                   = useState('');
   const [tags, setTags]                       = useState<string[]>([]);
   const [tagInput, setTagInput]               = useState('');
   const [featuredImages, setFeaturedImages] = useState<Array<{ storageId: string; caption: string }>>([]);
@@ -137,13 +157,15 @@ export default function CreateArticlePage() {
       }
 
       // Get or create author
-      let authorId = authors?.[0]?._id;
+      let authorId = author || authors?.[0]?._id;
       if (!authorId) {
         // Create a default author if none exist
         authorId = await createAuthor({
           name: 'Admin',
           email: 'admin@hirwaambassadeur.com',
           bio: 'Administrator',
+          canCreateArticles: true,
+          canEditPhotos: false,
         });
       }
 
@@ -159,7 +181,7 @@ export default function CreateArticlePage() {
           caption: img.caption,
         })) : undefined,
         categoryId: selectedCategory._id,
-        authorId,
+        authorId: authorId as unknown as any,
         status: status as 'draft' | 'published' | 'archived',
         tags: tags.length > 0 ? tags : undefined,
         featured: false,
@@ -173,6 +195,7 @@ export default function CreateArticlePage() {
       setExcerpt('');
       setContent('');
       setCategory('');
+      setAuthor('');
       setTags([]);
       setTagInput('');
       setFeaturedImages([]);
@@ -205,6 +228,47 @@ export default function CreateArticlePage() {
     e.target.style.borderColor = 'rgba(201,168,76,0.12)';
     e.target.style.background  = 'rgba(255,255,255,0.03)';
   };
+
+  const handleLogout = () => {
+    localStorage.removeItem('adminToken');
+    localStorage.removeItem('adminEmail');
+    localStorage.removeItem('adminName');
+    localStorage.removeItem('adminRole');
+    router.push('/auth/login');
+  };
+
+  // Show loading while checking auth
+  if (!isAuthenticated) {
+    return (
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: '#070f09',
+        color: '#e8dfc8',
+        fontFamily: '"Helvetica Neue", Arial, sans-serif',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{
+            width: 40,
+            height: 40,
+            border: '3px solid #1a3d28',
+            borderTop: '3px solid #c9a84c',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            margin: '0 auto 20px',
+          }} />
+          <p>Loading...</p>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -296,6 +360,107 @@ export default function CreateArticlePage() {
               </>
             )}
           </button>
+
+          {/* Authors Link */}
+          <button onClick={() => router.push('/admin/authors')} style={{
+            background: 'transparent',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 4,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#5a8a6a',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+              e.currentTarget.style.color = '#c9a84c';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.18)';
+              e.currentTarget.style.color = '#5a8a6a';
+            }}
+            title="Manage Authors"
+          >Authors</button>
+
+          {/* Hiring Link */}
+          <button onClick={() => router.push('/admin/jobs')} style={{
+            background: 'transparent',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 4,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#5a8a6a',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+              e.currentTarget.style.color = '#c9a84c';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.18)';
+              e.currentTarget.style.color = '#5a8a6a';
+            }}
+            title="Manage Job Postings"
+          >Hiring</button>
+
+          {/* Ads Link */}
+          <button onClick={() => router.push('/admin/ads')} style={{
+            background: 'transparent',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 4,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#5a8a6a',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+              e.currentTarget.style.color = '#c9a84c';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.18)';
+              e.currentTarget.style.color = '#5a8a6a';
+            }}
+            title="Manage Advertisements"
+          >Ads</button>
+
+          {/* Logout button */}
+          <button onClick={handleLogout} style={{
+            background: 'transparent',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 4,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#5a8a6a',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+            marginLeft: 'auto',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+              e.currentTarget.style.color = '#e88878';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.18)';
+              e.currentTarget.style.color = '#5a8a6a';
+            }}
+            title={adminName}
+          >Logout</button>
         </div>
       </div>
 
@@ -572,7 +737,48 @@ export default function CreateArticlePage() {
 
                 <Divider />
 
-                {/* Publish button */}
+                <Label>Author</Label>
+                {!authors || authors.length === 0 ? (
+                  <div style={{ padding: '10px', color: '#8a7a6a', fontSize: 12, textAlign: 'center', background: 'rgba(201,168,76,0.05)', borderRadius: 3 }}>
+                    No authors available. Please create one in Authors Management.
+                  </div>
+                ) : (
+                  <select
+                    value={author}
+                    onChange={(e) => setAuthor(e.target.value)}
+                    style={{
+                      width: '100%',
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(201,168,76,0.12)',
+                      borderRadius: 4,
+                      padding: '11px 14px',
+                      color: '#e8dfc8',
+                      fontSize: 13,
+                      outline: 'none',
+                      cursor: 'pointer',
+                      marginBottom: 16,
+                    }}
+                    onFocus={e => {
+                      e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }}
+                    onBlur={e => {
+                      e.currentTarget.style.borderColor = 'rgba(201,168,76,0.12)';
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.03)';
+                    }}
+                  >
+                    <option value="">Select an author...</option>
+                    {authors
+                      .filter((a: any) => a.canCreateArticles === true)
+                      .map((a: any) => (
+                        <option key={a._id} value={a._id}>
+                          {a.name} ({a.email})
+                        </option>
+                      ))}
+                  </select>
+                )}
+
+                <Divider />
                 <button
                   onClick={handleSubmit}
                   disabled={saving}

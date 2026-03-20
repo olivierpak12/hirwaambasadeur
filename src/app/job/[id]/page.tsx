@@ -1,8 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { addApplication, Job, JobApplication, loadJobs } from '@/lib/jobs';
+import { useQuery, useMutation } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Job } from '@/lib/jobs';
 
 function formatDate(iso: string) {
   try {
@@ -13,42 +15,46 @@ function formatDate(iso: string) {
 }
 
 function JobDetailClient({ id }: { id: string }) {
-  const [job, setJob] = useState<Job | null | undefined>(undefined);
-  const [status, setStatus] = useState<'idle' | 'submitted'>('idle');
+  const [status, setStatus] = useState<'idle' | 'submitted' | 'error'>('idle');
   const [form, setForm] = useState({ name: '', email: '', coverLetter: '' });
   const [resume, setResume] = useState<File | null>(null);
-
-  // Load jobs on the client only to avoid SSR/client mismatch.
-  useEffect(() => {
-    setJob(loadJobs().find((j) => j.id === id) ?? null);
-  }, [id]);
+  
+  // Fetch the specific job from Convex database
+  const dbJob = useQuery(api.jobs.getJobById, { jobId: id as any });
+  const createApplication = useMutation(api.jobs.createJobApplication);
+  
+  // Convert Convex job to Job format
+  const job: Job | null | undefined = dbJob ? {
+    id: dbJob._id,
+    title: dbJob.title,
+    department: dbJob.department,
+    type: dbJob.type as 'Full-time' | 'Part-time' | 'Contract' | 'Freelance',
+    location: dbJob.location,
+    status: dbJob.status as 'open' | 'closed',
+    postedAt: new Date(dbJob.createdAt).toISOString().split('T')[0],
+    description: dbJob.description,
+    requirements: dbJob.requirements,
+    benefits: dbJob.benefits,
+  } : dbJob === null ? null : undefined;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
-    const newApp: JobApplication = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      jobId: job.id,
-      name: form.name,
-      email: form.email,
-      coverLetter: form.coverLetter,
-      resumeName: resume?.name,
-      resumeDataUrl: '',
-      status: 'pending',
-      appliedAt: new Date().toISOString(),
-    };
-
-    if (resume) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        newApp.resumeDataUrl = reader.result as string;
-        addApplication(newApp);
-        setStatus('submitted');
-      };
-      reader.readAsDataURL(resume);
-    } else {
-      addApplication(newApp);
+    
+    try {
+      await createApplication({
+        jobId: job.id as any,
+        name: form.name,
+        email: form.email,
+        coverLetter: form.coverLetter,
+      });
+      
       setStatus('submitted');
+      setForm({ name: '', email: '', coverLetter: '' });
+      setResume(null);
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
     }
   };
 
@@ -61,6 +67,14 @@ function JobDetailClient({ id }: { id: string }) {
       alert('Unable to copy link');
     }
   };
+
+  if (dbJob === undefined) {
+    return (
+      <div style={{ minHeight: '70vh', padding: 24, textAlign: 'center' }}>
+        <h1 style={{ fontSize: 28, marginBottom: 12 }}>Loading...</h1>
+      </div>
+    );
+  }
 
   if (!job) {
     return (
@@ -273,6 +287,32 @@ function JobDetailClient({ id }: { id: string }) {
                 lineHeight: 1.5
               }}>
                 Thank you for your interest in joining Hirwa Ambassadeur. We'll review your application and get back to you within 5-7 business days.
+              </p>
+            </div>
+          ) : status === 'error' ? (
+            <div style={{
+              padding: 24,
+              background: 'linear-gradient(135deg, #ffebee, #ffcdd2)',
+              border: '1px solid #ef5350',
+              borderRadius: 12,
+              textAlign: 'center'
+            }}>
+              <h3 style={{
+                fontSize: 18,
+                fontWeight: 700,
+                margin: 0,
+                marginBottom: 8,
+                color: '#c62828'
+              }}>
+                Submission Error
+              </h3>
+              <p style={{
+                margin: 0,
+                color: '#555',
+                fontSize: 14,
+                lineHeight: 1.5
+              }}>
+                There was an error submitting your application. Please try again or contact us directly.
               </p>
             </div>
           ) : (

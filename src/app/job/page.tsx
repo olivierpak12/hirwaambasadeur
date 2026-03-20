@@ -1,19 +1,32 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
-import { Job, loadJobs } from '@/lib/jobs';
+import { useState } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Job } from '@/lib/jobs';
 
 export default function JobListPage() {
-  const [jobs, setJobs] = useState<Job[] | null>(null);
+  const [selectedJob, setSelectedJob] = useState<string | null>(null);
+  
+  // Fetch jobs from Convex database
+  const dbJobs = useQuery(api.jobs.getAllJobs);
+  
+  // Convert Convex jobs to Job format
+  const jobs: Job[] = (dbJobs || []).map((job: any) => ({
+    id: job._id,
+    title: job.title,
+    department: job.department,
+    type: job.type as 'Full-time' | 'Part-time' | 'Contract' | 'Freelance',
+    location: job.location,
+    status: job.status as 'open' | 'closed',
+    postedAt: new Date(job.createdAt).toISOString().split('T')[0],
+    description: job.description,
+    requirements: job.requirements,
+    benefits: job.benefits,
+  }));
 
-  // Avoid hydrating twice with a different initial state by only loading jobs on the client.
-  // The server and first client render will match (loading state), then we update after mount.
-  useEffect(() => {
-    setJobs(loadJobs());
-  }, []);
-
-  if (jobs === null) {
+  if (!dbJobs) {
     return (
       <div style={{
         minHeight: '100vh',

@@ -46,8 +46,9 @@ export default function Newsletter({
     setDebugCode(null);
 
     try {
+      const trimmedEmail = email.trim();
       const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
-      const result = await createSubscription({ email, source, code: verificationCode });
+      const result = await createSubscription({ email: trimmedEmail, source, code: verificationCode });
 
       if (result?.verified) {
         setStatus('done');
@@ -57,7 +58,7 @@ export default function Newsletter({
       setStatus('needsVerification');
 
       try {
-        const sendResult = await sendVerificationEmail({ email, code: verificationCode });
+        const sendResult = await sendVerificationEmail({ email: trimmedEmail, code: verificationCode });
         if (sendResult?.debugCode) {
           setDebugCode(sendResult.debugCode);
         }
@@ -87,11 +88,12 @@ export default function Newsletter({
     setError(null);
 
     try {
-      const result = await verifySubscription({ email, code });
+      const trimmedEmail = email.trim();
+      const result = await verifySubscription({ email: trimmedEmail, code });
       if (result?.success) {
         // Send confirmation email after successful verification
         try {
-          await sendConfirmationEmail({ email });
+          await sendConfirmationEmail({ email: trimmedEmail });
         } catch (confirmError) {
           console.error('Failed to send confirmation email:', confirmError);
           // Don't show error to user - subscription is already successful

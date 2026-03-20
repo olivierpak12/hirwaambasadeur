@@ -8,8 +8,13 @@ export default defineSchema({
     email: v.string(),
     bio: v.string(),
     photo: v.optional(v.string()),
+    photoStorageId: v.optional(v.id('_storage')),
+    canCreateArticles: v.optional(v.boolean()),
+    canEditPhotos: v.optional(v.boolean()),
+    isActive: v.optional(v.boolean()),
     createdAt: v.string(),
-  }),
+    updatedAt: v.optional(v.string()),
+  }).index('by_email', ['email']),
 
   // News Categories
   categories: defineTable({
@@ -25,14 +30,14 @@ export default defineSchema({
     slug: v.string(),
     content: v.string(),
     excerpt: v.string(),
+    // ✅ Direct URL strings (for Unsplash or other external images)
+    featuredImage: v.optional(v.string()),
     // ✅ Store multiple featured image storageIds
     featuredImageIds: v.optional(v.array(v.id('_storage'))),
     // ✅ Backward compatibility for existing articles
     featuredImageId: v.optional(v.id('_storage')),
-    // ✅ Removed featuredImage: v.optional(v.string()) — was storing expired blob URLs
     images: v.optional(v.array(v.object({
       storageId: v.id('_storage'),
-      // ✅ Removed url: v.string() — was storing expired blob URLs
       caption: v.optional(v.string()),
     }))),
     categoryId: v.id('categories'),
@@ -107,7 +112,10 @@ export default defineSchema({
     altText: v.string(),
     linkUrl: v.optional(v.string()),
     isActive: v.boolean(),
+    views: v.number(),
+    clicks: v.number(),
     createdAt: v.string(),
+    updatedAt: v.string(),
   }).index('by_placement', ['placement']),
 
   // Writing Permissions Requests
@@ -124,4 +132,50 @@ export default defineSchema({
     rejectionReason: v.optional(v.string()),
     approvedUntil: v.optional(v.string()),
   }).index('by_status', ['status']).index('by_email', ['email']),
+
+  // Admin Users for Authentication
+  admins: defineTable({
+    email: v.string(),
+    passwordHash: v.string(), // bcrypt hash
+    name: v.string(),
+    role: v.union(v.literal('super_admin'), v.literal('admin'), v.literal('editor')),
+    isActive: v.boolean(),
+    lastLogin: v.optional(v.string()),
+    createdAt: v.string(),
+  }).index('by_email', ['email']),
+
+  // Admin Sessions for login state
+  adminSessions: defineTable({
+    adminId: v.id('admins'),
+    token: v.string(),
+    expiresAt: v.string(),
+    createdAt: v.string(),
+  }).index('by_token', ['token']).index('by_admin', ['adminId']),
+
+  // Job Postings for Hiring
+  jobs: defineTable({
+    title: v.string(),
+    department: v.string(),
+    type: v.union(v.literal('Full-time'), v.literal('Part-time'), v.literal('Contract'), v.literal('Freelance')),
+    location: v.string(),
+    description: v.string(),
+    requirements: v.optional(v.array(v.string())),
+    benefits: v.optional(v.array(v.string())),
+    status: v.union(v.literal('open'), v.literal('closed')),
+    createdAt: v.string(),
+    updatedAt: v.string(),
+  }).index('by_status', ['status']),
+
+  // Job Applications
+  jobApplications: defineTable({
+    jobId: v.id('jobs'),
+    name: v.string(),
+    email: v.string(),
+    phone: v.optional(v.string()),
+    coverLetter: v.optional(v.string()),
+    resumeStorageId: v.optional(v.id('_storage')),
+    status: v.union(v.literal('pending'), v.literal('approved'), v.literal('rejected')),
+    appliedAt: v.string(),
+    reviewedAt: v.optional(v.string()),
+  }).index('by_job', ['jobId']).index('by_status', ['status']),
 });

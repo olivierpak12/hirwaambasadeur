@@ -1,49 +1,29 @@
 ﻿'use client';
 
 import { useState, useRef, useCallback } from 'react';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import { Id } from '@/convex/_generated/dataModel';
 
-interface ImageWithCaption {
+// ── This is the canonical type used everywhere ──
+export interface UploadedImage {
   storageId: Id<'_storage'>;
+  previewUrl: string; // local blob URL for immediate display only
   caption: string;
 }
 
 interface MultiImageUploadProps {
-  onImagesChange: (images: ImageWithCaption[]) => void;
+  onImagesChange: (images: UploadedImage[]) => void;
   maxImages?: number;
   label?: string;
 }
 
-const MAX_IMAGES = 5;
-
-// Separate component so each image can independently call useQuery
-function ImagePreview({
-  storageId,
-  alt,
-  style,
-}: {
-  storageId: Id<'_storage'>;
-  alt: string;
-  style?: React.CSSProperties;
-}) {
-  const url = useQuery(api.files.getImageUrl, { storageId });
-  return (
-    <img
-      src={url ?? '/placeholder-400x400.svg'}
-      alt={alt}
-      style={style}
-    />
-  );
-}
-
 export default function MultiImageUpload({
   onImagesChange,
-  maxImages = MAX_IMAGES,
-  label = 'Article Images (up to 5)',
+  maxImages = 5,
+  label = 'Upload Images',
 }: MultiImageUploadProps) {
-  const [images, setImages] = useState<ImageWithCaption[]>([]);
+  const [images, setImages] = useState<UploadedImage[]>([]);
   const [uploading, setUploading] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,63 +31,61 @@ export default function MultiImageUpload({
 
   const generateUploadUrl = useMutation(api.files.generateUploadUrl);
 
-  const handleFile = useCallback(
-    async (file: File) => {
-      if (!file) return;
+  const handleFile = useCallback(async (file: File) => {
+    if (!file) return;
 
-      if (images.length >= maxImages) {
-        setError(`Maximum ${maxImages} images allowed`);
-        return;
-      }
+    if (images.length >= maxImages) {
+      setError(`Maximum ${maxImages} images allowed`);
+      return;
+    }
+    if (!file.type.startsWith('image/')) {
+      setError('Please select an image file (JPG, PNG, WebP, etc.)');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setError('Each image must be smaller than 10MB');
+      return;
+    }
 
-      if (!file.type.startsWith('image/')) {
-        setError('Please select an image file (JPG, PNG, WebP, etc.)');
-        return;
-      }
+    setError(null);
+    setUploading(true);
 
-      if (file.size > 10 * 1024 * 1024) {
-        setError('Each image must be smaller than 10MB');
-        return;
-      }
+    // Create local blob URL for immediate preview — never stored in DB
+    const previewUrl = URL.createObjectURL(file);
 
-      setError(null);
-      setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
 
-      try {
-        const uploadUrl = await generateUploadUrl();
+      const response = await fetch(uploadUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      });
 
-        const response = await fetch(uploadUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': file.type },
-          body: file,
-        });
+      if (!response.ok) throw new Error('Upload failed');
 
-        if (!response.ok) throw new Error('Upload failed');
+      const data = await response.json();
+      // Convex returns { storageId } — keep it as the typed Id
+      const storageId = data.storageId as Id<'_storage'>;
 
-        const { storageId } = await response.json();
-
-        // Store just the storageId  preview uses ImagePreview + Convex URL
-        const newImage: ImageWithCaption = {
-          storageId: storageId as Id<'_storage'>,
-          caption: '',
-        };
-
-        const updatedImages = [...images, newImage];
-        setImages(updatedImages);
-        onImagesChange(updatedImages);
-      } catch (err) {
-        setError('Upload failed. Please try again.');
-        console.error('Upload error:', err);
-      } finally {
-        setUploading(false);
-      }
-    },
-    [images, maxImages, generateUploadUrl, onImagesChange]
-  );
+      const newImage: UploadedImage = { storageId, previewUrl, caption: '' };
+      const updated = [...images, newImage];
+      setImages(updated);
+      onImagesChange(updated);
+    } catch (err) {
+      URL.revokeObjectURL(previewUrl);
+      setError('Upload failed. Please try again.');
+      console.error('Upload error:', err);
+    } finally {
+      setUploading(false);
+    }
+  }, [images, maxImages, generateUploadUrl, onImagesChange]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) handleFile(file);
+    // Reset so same file can be re-selected
+    e.target.value = '';
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -117,62 +95,35 @@ export default function MultiImageUpload({
     if (file) handleFile(file);
   };
 
-  const handleDragOver = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragOver(true);
-  };
-
-  const handleDragLeave = () => setDragOver(false);
-
   const removeImage = (index: number) => {
-    const updatedImages = images.filter((_, i) => i !== index);
-    setImages(updatedImages);
-    onImagesChange(updatedImages);
+    URL.revokeObjectURL(images[index].previewUrl);
+    const updated = images.filter((_, i) => i !== index);
+    setImages(updated);
+    onImagesChange(updated);
   };
 
   const updateCaption = (index: number, caption: string) => {
-    const updatedImages = images.map((img, i) =>
-      i === index ? { ...img, caption } : img
-    );
-    setImages(updatedImages);
-    onImagesChange(updatedImages);
+    const updated = images.map((img, i) => i === index ? { ...img, caption } : img);
+    setImages(updated);
+    onImagesChange(updated);
   };
 
   return (
-    <div style={{ marginBottom: 20 }}>
-      <label
-        style={{
-          display: 'block',
-          fontSize: 12,
-          fontWeight: 500,
-          color: '#a0b8a8',
-          letterSpacing: 1,
-          textTransform: 'uppercase',
-          marginBottom: 8,
-        }}
-      >
-        {label}
-      </label>
-
-      {/* Upload area */}
+    <div>
+      {/* Drop zone — only shown when under limit */}
       {images.length < maxImages && (
         <div
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-          style={{
-            border: dragOver ? '2px dashed #c9a84c' : '2px dashed #2a4a35',
-            background: dragOver
-              ? 'rgba(201,168,76,0.05)'
-              : 'rgba(255,255,255,0.01)',
-            borderRadius: 4,
-            padding: 24,
-            textAlign: 'center',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            marginBottom: 16,
-          }}
           onClick={() => fileInputRef.current?.click()}
+          onDrop={handleDrop}
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          style={{
+            border: `2px dashed ${dragOver ? '#c9a84c' : '#2a4a35'}`,
+            background: dragOver ? 'rgba(201,168,76,0.05)' : 'rgba(255,255,255,0.01)',
+            borderRadius: 4, padding: 24, textAlign: 'center',
+            cursor: uploading ? 'wait' : 'pointer',
+            transition: 'all 0.2s', marginBottom: 14,
+          }}
         >
           <input
             ref={fileInputRef}
@@ -180,107 +131,57 @@ export default function MultiImageUpload({
             accept="image/*"
             onChange={handleInputChange}
             style={{ display: 'none' }}
-            disabled={uploading || images.length >= maxImages}
+            disabled={uploading}
           />
-          <div style={{ color: '#a0b8a8', fontSize: 13 }}>
-            <div style={{ marginBottom: 6, fontWeight: 500 }}>
-               Drag images here or click to upload
+          {uploading ? (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 10 }}>
+              <div style={{ width: 16, height: 16, border: '2px solid #2a4a35', borderTopColor: '#c9a84c', borderRadius: '50%', animation: 'muSpin 0.7s linear infinite' }} />
+              <span style={{ fontSize: 12, color: '#a0b8a8' }}>Uploading…</span>
             </div>
-            <div style={{ fontSize: 11, color: '#5a8a6a' }}>
-              {uploading ? 'Uploading...' : `${images.length}/${maxImages} images`}
-            </div>
-          </div>
+          ) : (
+            <>
+              <div style={{ fontSize: 24, marginBottom: 8 }}>📷</div>
+              <div style={{ fontSize: 13, color: '#a0b8a8', fontWeight: 500, marginBottom: 4 }}>
+                Drag here or click to upload
+              </div>
+              <div style={{ fontSize: 11, color: '#5a8a6a' }}>
+                {images.length}/{maxImages} · JPG, PNG, WebP · Max 10MB
+              </div>
+            </>
+          )}
         </div>
       )}
 
-      {/* Error message */}
       {error && (
-        <div
-          style={{
-            background: '#e05a3a20',
-            border: '1px solid #e05a3a',
-            color: '#e05a3a',
-            padding: 10,
-            borderRadius: 3,
-            fontSize: 12,
-            marginBottom: 12,
-          }}
-        >
+        <div style={{ background: 'rgba(224,90,58,0.12)', border: '1px solid #e05a3a', color: '#e05a3a', padding: '8px 12px', borderRadius: 3, fontSize: 12, marginBottom: 12 }}>
           {error}
+          <button onClick={() => setError(null)} style={{ background: 'none', border: 'none', color: '#e05a3a', cursor: 'pointer', float: 'right', fontSize: 14, lineHeight: 1 }}>✕</button>
         </div>
       )}
 
-      {/* Image gallery */}
+      {/* Preview grid */}
       {images.length > 0 && (
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))',
-            gap: 12,
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 10 }}>
           {images.map((img, idx) => (
-            <div
-              key={idx}
-              style={{
-                background: '#0f2318',
-                border: '1px solid #2a4a35',
-                borderRadius: 4,
-                overflow: 'hidden',
-                padding: 8,
-              }}
-            >
-              <div
-                style={{
-                  width: '100%',
-                  height: 100,
-                  background: '#1a3d28',
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  marginBottom: 8,
-                }}
-              >
-                {/*  FIX: use ImagePreview with storageId  fetches real Convex URL */}
-                <ImagePreview
-                  storageId={img.storageId}
-                  alt={`Upload ${idx + 1}`}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            <div key={idx} style={{ background: '#0f2318', border: '1px solid #2a4a35', borderRadius: 4, overflow: 'hidden', padding: 7 }}>
+              <div style={{ width: '100%', height: 90, background: '#1a3d28', borderRadius: 3, overflow: 'hidden', marginBottom: 7 }}>
+                {/* ✅ Uses local blob URL — instant, no Convex round-trip needed */}
+                <img
+                  src={img.previewUrl}
+                  alt={`Photo ${idx + 1}`}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
                 />
               </div>
-
               <input
                 type="text"
                 placeholder="Caption (optional)"
                 value={img.caption}
-                onChange={(e) => updateCaption(idx, e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: 6,
-                  fontSize: 11,
-                  background: '#1a3d28',
-                  border: '0.5px solid #2a4a35',
-                  borderRadius: 2,
-                  color: '#a0b8a8',
-                  marginBottom: 6,
-                  outline: 'none',
-                }}
+                onChange={e => updateCaption(idx, e.target.value)}
+                style={{ width: '100%', padding: '5px 7px', fontSize: 11, background: '#1a3d28', border: '0.5px solid #2a4a35', borderRadius: 2, color: '#a0b8a8', marginBottom: 6, outline: 'none', boxSizing: 'border-box' }}
               />
-
               <button
                 onClick={() => removeImage(idx)}
-                style={{
-                  width: '100%',
-                  padding: 4,
-                  fontSize: 10,
-                  background: '#2a4a35',
-                  border: 'none',
-                  borderRadius: 2,
-                  color: '#a0b8a8',
-                  cursor: 'pointer',
-                  letterSpacing: 0.5,
-                  textTransform: 'uppercase',
-                  fontWeight: 600,
-                }}
+                style={{ width: '100%', padding: 4, fontSize: 10, background: '#2a4a35', border: 'none', borderRadius: 2, color: '#a0b8a8', cursor: 'pointer', letterSpacing: 0.5, textTransform: 'uppercase', fontWeight: 600 }}
               >
                 Remove
               </button>
@@ -288,6 +189,8 @@ export default function MultiImageUpload({
           ))}
         </div>
       )}
+
+      <style>{`@keyframes muSpin { to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }

@@ -1,7 +1,24 @@
 import { mutation, query } from './_generated/server';
 import { v } from 'convex/values';
 
-const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+const isValidEmail = (email: string) => {
+  // Standard email validation - allows most valid email formats
+  // Including: localpart+tag@domain.co.uk, first.last@example.com, etc.
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    return false;
+  }
+  // Additional checks
+  if (email.length < 5 || email.length > 254) {
+    return false;
+  }
+  // Ensure no consecutive dots, no leading/trailing dots in local part
+  const [localPart] = email.split('@');
+  if (!localPart || localPart.startsWith('.') || localPart.endsWith('.') || localPart.includes('..')) {
+    return false;
+  }
+  return true;
+};
 const generateCode = () => Math.floor(100000 + Math.random() * 900000).toString();
 
 export const createSubscription = mutation({
@@ -12,8 +29,13 @@ export const createSubscription = mutation({
   },
   handler: async (ctx, { email, source, code }) => {
     const normalized = email.trim().toLowerCase();
-    if (!normalized || !isValidEmail(normalized)) {
-      throw new Error('Invalid email');
+    
+    if (!normalized) {
+      throw new Error('Email is required');
+    }
+    
+    if (!isValidEmail(normalized)) {
+      throw new Error(`Invalid email address: "${normalized}"`);
     }
 
     const codeToStore = code || generateCode();
