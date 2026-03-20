@@ -27,18 +27,27 @@ export default function GoogleAdSense({
   const publisherId = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID;
 
   useEffect(() => {
-    // Check if adsbygoogle is available and push ad
-    if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
-      try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-      } catch (err) {
-        console.error('AdSense error:', err);
-      }
+    // Only push ad if we have both publisher ID and slot configured
+    if (!publisherId || !slot) {
+      return;
     }
-  }, []);
 
-  // Don't render if no publisher ID configured
-  if (!publisherId) {
+    // Delay to ensure DOM is properly laid out
+    const timeoutId = setTimeout(() => {
+      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
+        try {
+          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        } catch (err) {
+          console.error('AdSense error:', err);
+        }
+      }
+    }, 500);
+
+    return () => clearTimeout(timeoutId);
+  }, [publisherId, slot]);
+
+  // Don't render if no publisher ID or slot configured
+  if (!publisherId || !slot) {
     return null;
   }
 
@@ -48,6 +57,7 @@ export default function GoogleAdSense({
       style={{
         display: 'flex',
         justifyContent: 'center',
+        minHeight: format === 'horizontal' ? '90px' : format === 'vertical' ? '600px' : '250px',
         ...style,
       }}
     >
