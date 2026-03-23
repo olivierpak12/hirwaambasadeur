@@ -15,6 +15,15 @@ const nextConfig: NextConfig = {
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
+  // Performance optimizations
+  swcMinify: true,
+  experimental: {
+    optimizeCss: true,
+  },
+  // Enable compression
+  compress: true,
+  // Optimize fonts
+  optimizeFonts: true,
 };
 
 export default nextConfig;
