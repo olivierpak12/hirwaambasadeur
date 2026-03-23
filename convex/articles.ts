@@ -95,6 +95,7 @@ async function enrichArticle(ctx: any, article: any, includeStats = false) {
     featured: resolvedFeaturedImage || undefined,
     featuredImages,
     featuredImage: resolvedFeaturedImage || undefined,
+    featuredImageUrl: resolvedFeaturedImage || undefined,
     images,
     author: author ?? undefined,
     category: category ?? undefined,
