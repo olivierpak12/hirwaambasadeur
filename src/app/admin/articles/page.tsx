@@ -82,22 +82,22 @@ export default function ArticlesAdminPage() {
 
     try {
       const updateData: any = {
-        articleId: editingId as any,
-        title: editTitle,
-        slug: editSlug || editTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
-        excerpt: editExcerpt,
-        content: editContent,
-        featuredImage: editFeaturedImageUrl || undefined,
+        articleId: editingId,
+        title: editTitle.trim(),
+        slug: (editSlug || editTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).trim(),
+        excerpt: editExcerpt.trim(),
+        content: editContent.trim(),
+        featuredImage: editFeaturedImageUrl.trim() || undefined,
         status: editStatus,
-        tags: editTags ? editTags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
+        tags: editTags ? editTags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
       };
 
       // Only include categoryId if it's not empty
-      if (editCategory) {
-        updateData.categoryId = editCategory as any;
+      if (editCategory && editCategory.trim()) {
+        updateData.categoryId = editCategory.trim();
       }
 
-      console.log('Sending update data:', updateData);
+      console.log('Sending update data:', JSON.stringify(updateData, null, 2));
 
       await updateArticle(updateData);
 

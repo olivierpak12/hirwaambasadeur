@@ -372,8 +372,10 @@ export const updateArticle = mutation({
     featured: v.optional(v.boolean()),
     status: v.optional(v.union(v.literal('draft'), v.literal('published'), v.literal('archived'))),
   },
-  handler: async (ctx, { articleId, ...updates }) => {
-    console.log('updateArticle called with:', { articleId, updates });
+  handler: async (ctx, args) => {
+    console.log('updateArticle called with args:', JSON.stringify(args, null, 2));
+
+    const { articleId, ...updates } = args;
 
     // Verify the article exists
     const existingArticle = await ctx.db.get(articleId);
@@ -381,32 +383,42 @@ export const updateArticle = mutation({
       throw new Error(`Article with ID ${articleId} not found`);
     }
 
-    // Validate required fields
-    if (updates.title && updates.title.trim().length === 0) {
+    console.log('Existing article:', JSON.stringify(existingArticle, null, 2));
+
+    // Validate required fields if provided
+    if (updates.title !== undefined && (!updates.title || updates.title.trim().length === 0)) {
       throw new Error('Title cannot be empty');
     }
-    if (updates.slug && updates.slug.trim().length === 0) {
+    if (updates.slug !== undefined && (!updates.slug || updates.slug.trim().length === 0)) {
       throw new Error('Slug cannot be empty');
     }
-    if (updates.content && updates.content.trim().length === 0) {
+    if (updates.content !== undefined && (!updates.content || updates.content.trim().length === 0)) {
       throw new Error('Content cannot be empty');
     }
 
     // Validate categoryId if provided
-    if (updates.categoryId) {
+    if (updates.categoryId !== undefined) {
+      console.log('Validating categoryId:', updates.categoryId);
       const category = await ctx.db.get(updates.categoryId);
       if (!category) {
         throw new Error(`Category with ID ${updates.categoryId} not found`);
       }
+      console.log('Category found:', category.name);
     }
 
     const now = new Date().toISOString();
     const finalUpdates = { ...updates, updatedAt: now };
 
-    console.log('Final updates:', finalUpdates);
+    console.log('Final updates:', JSON.stringify(finalUpdates, null, 2));
 
-    await ctx.db.patch(articleId, finalUpdates);
-    return articleId;
+    try {
+      await ctx.db.patch(articleId, finalUpdates);
+      console.log('Article updated successfully');
+      return articleId;
+    } catch (patchError) {
+      console.error('Error during db.patch:', patchError);
+      throw patchError;
+    }
   },
 });
 
