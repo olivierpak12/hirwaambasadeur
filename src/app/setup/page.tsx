@@ -12,6 +12,7 @@ export default function SetupPage() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const createAdmin = useMutation(api.auth.createSuperAdmin);
+  const resetAndReseed = useMutation(api.articles.resetAndReseedDemo);
 
   const handleSetup = async () => {
     setStatus('loading');
@@ -44,6 +45,30 @@ export default function SetupPage() {
       console.error('Setup error:', error);
       setStatus('error');
       setMessage('❌ Error: ' + (error.message || 'Failed to create admin'));
+      setShowSuccess(false);
+    }
+  };
+
+  const handleSeedDemo = async () => {
+    setStatus('loading');
+    setMessage('Seeding demo articles with featured images...');
+    
+    try {
+      const result = await resetAndReseed();
+      
+      console.log('Seed result:', result);
+
+      setStatus('success');
+      setMessage('✅ Demo articles created successfully! Redirecting to homepage...');
+      setShowSuccess(true);
+      
+      setTimeout(() => {
+        router.push('/');
+      }, 2000);
+    } catch (error: any) {
+      console.error('Seed error:', error);
+      setStatus('error');
+      setMessage('❌ Error: ' + (error.message || 'Failed to seed demo articles'));
       setShowSuccess(false);
     }
   };
@@ -136,6 +161,7 @@ export default function SetupPage() {
                 cursor: status === 'loading' ? 'not-allowed' : 'pointer',
                 transition: 'all 0.2s',
                 opacity: status === 'loading' ? 0.6 : 1,
+                marginBottom: '12px',
               }}
               onMouseEnter={(e) => {
                 if (status !== 'loading') {
@@ -147,6 +173,36 @@ export default function SetupPage() {
               }}
             >
               {status === 'loading' ? '⏳ Creating Account...' : '🔧 Create Admin Account'}
+            </button>
+
+            <button
+              onClick={handleSeedDemo}
+              disabled={status === 'loading'}
+              style={{
+                width: '100%',
+                padding: '14px',
+                background: 'rgba(201,168,76,0.3)',
+                color: '#c9a84c',
+                border: '2px solid rgba(201,168,76,0.6)',
+                borderRadius: '6px',
+                fontSize: '13px',
+                fontWeight: 700,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: status === 'loading' ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                opacity: status === 'loading' ? 0.6 : 1,
+              }}
+              onMouseEnter={(e) => {
+                if (status !== 'loading') {
+                  (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,168,76,0.5)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background = 'rgba(201,168,76,0.3)';
+              }}
+            >
+              {status === 'loading' ? '⏳ Seeding...' : '📚 Seed Demo Articles'}
             </button>
 
             {message && (
