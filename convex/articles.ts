@@ -358,6 +358,62 @@ export const updateArticleStatus = mutation({
   },
 });
 
+export const updateArticle = mutation({
+  args: {
+    articleId: v.id('articles'),
+    title: v.optional(v.string()),
+    slug: v.optional(v.string()),
+    excerpt: v.optional(v.string()),
+    content: v.optional(v.string()),
+    featuredImage: v.optional(v.string()),
+    featuredImageIds: v.optional(v.array(v.id('_storage'))),
+    categoryId: v.optional(v.id('categories')),
+    tags: v.optional(v.array(v.string())),
+    featured: v.optional(v.boolean()),
+    status: v.optional(v.union(v.literal('draft'), v.literal('published'), v.literal('archived'))),
+  },
+  handler: async (ctx, { articleId, ...updates }) => {
+    const now = new Date().toISOString();
+    await ctx.db.patch(articleId, {
+      ...updates,
+      updatedAt: now,
+    });
+    return articleId;
+  },
+});
+
+export const deleteArticle = mutation({
+  args: {
+    articleId: v.id('articles'),
+  },
+  handler: async (ctx, { articleId }) => {
+    // Delete all comments for this article
+    const comments = await ctx.db
+      .query('comments')
+      .filter((q) => q.eq(q.field('articleId'), articleId))
+      .collect();
+    
+    for (const comment of comments) {
+      await ctx.db.delete(comment._id);
+    }
+
+    // Delete all likes for this article
+    const likes = await ctx.db
+      .query('likes')
+      .filter((q) => q.eq(q.field('articleId'), articleId))
+      .collect();
+    
+    for (const like of likes) {
+      await ctx.db.delete(like._id);
+    }
+
+    // Delete the article itself
+    await ctx.db.delete(articleId);
+    
+    return { success: true };
+  },
+});
+
 export const addComment = mutation({
   args: {
     articleId: v.id('articles'),
