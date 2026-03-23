@@ -81,17 +81,23 @@ export default function ArticlesAdminPage() {
     setEditSaving(true);
 
     try {
-      await updateArticle({
+      const updateData: any = {
         articleId: editingId as any,
         title: editTitle,
-        slug: editSlug,
+        slug: editSlug || editTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''),
         excerpt: editExcerpt,
         content: editContent,
         featuredImage: editFeaturedImageUrl || undefined,
-        categoryId: editCategory as any,
         status: editStatus,
         tags: editTags ? editTags.split(',').map(t => t.trim()).filter(Boolean) : undefined,
-      });
+      };
+
+      // Only include categoryId if it's not empty
+      if (editCategory) {
+        updateData.categoryId = editCategory as any;
+      }
+
+      await updateArticle(updateData);
 
       setSavedMessage('✅ Article updated successfully!');
       setTimeout(() => {
@@ -99,9 +105,9 @@ export default function ArticlesAdminPage() {
         setActiveTab('list');
         setEditingId(null);
       }, 2000);
-    } catch (err) {
-      setError('Failed to update article. Please try again.');
-      console.error(err);
+    } catch (err: any) {
+      console.error('Update article error:', err);
+      setError(`Failed to update article: ${err.message || 'Please try again.'}`);
     } finally {
       setEditSaving(false);
     }
