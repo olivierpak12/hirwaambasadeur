@@ -434,6 +434,31 @@ export default function CreateArticlePage() {
             title="Manage Job Postings"
           >Hiring</button>
 
+          {/* Articles Link */}
+          <button onClick={() => router.push('/admin/articles')} style={{
+            background: 'transparent',
+            border: '1px solid rgba(201,168,76,0.18)',
+            borderRadius: 4,
+            padding: '7px 12px',
+            fontSize: 10,
+            fontWeight: 700,
+            color: '#5a8a6a',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+            onMouseEnter={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)';
+              e.currentTarget.style.color = '#c9a84c';
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.borderColor = 'rgba(201,168,76,0.18)';
+              e.currentTarget.style.color = '#5a8a6a';
+            }}
+            title="View & Edit Articles"
+          >Articles</button>
+
           {/* Ads Link */}
           <button onClick={() => router.push('/admin/ads')} style={{
             background: 'transparent',
