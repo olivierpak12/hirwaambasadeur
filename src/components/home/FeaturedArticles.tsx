@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
@@ -46,6 +47,11 @@ function PlaceholderImg({ height, index }: { height: number; index: number }) {
 
 export default function FeaturedArticles() {
   const articles = useQuery(api.articles.getPublishedArticles);
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set());
+
+  const handleImageError = (id: string) => {
+    setFailedImageIds((prev) => new Set(prev).add(id));
+  };
 
   if (!articles || articles.length === 0) {
     return (
@@ -76,10 +82,11 @@ export default function FeaturedArticles() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Image */}
             <div className="relative aspect-[4/3] lg:aspect-[3/4] overflow-hidden">
-              {featured.featuredImage ? (
+              {featured.featuredImage && !failedImageIds.has(featured._id) ? (
                 <Image
                   src={featured.featuredImage}
                   alt={featured.title}
+                  onError={() => handleImageError(featured._id)}
                   fill
                   className="object-cover transition-transform group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -134,10 +141,11 @@ export default function FeaturedArticles() {
             <Link key={article._id} href={`/article/${article.slug}`} className="group block">
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  {article.featuredImage ? (
+                  {article.featuredImage && !failedImageIds.has(article._id) ? (
                     <Image
                       src={article.featuredImage}
                       alt={article.title}
+                      onError={() => handleImageError(article._id)}
                       fill
                       className="object-cover transition-transform group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useQuery } from 'convex/react';
@@ -27,6 +28,7 @@ function timeAgo(iso: string) {
 
 export default function TrendingArticles() {
   const articles = useQuery(api.articles.getPublishedArticles);
+  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set());
 
   if (!articles || articles.length === 0) return null;
 
@@ -34,6 +36,10 @@ export default function TrendingArticles() {
   const trending = [...articles]
     .sort((a, b) => (b.views || 0) - (a.views || 0))
     .slice(0, 5);
+
+  const handleImageError = (id: string) => {
+    setFailedImageIds((prev) => new Set(prev).add(id));
+  };
 
   return (
     <div className="space-y-6">
@@ -48,11 +54,12 @@ export default function TrendingArticles() {
             <div className="flex space-x-4">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 relative rounded overflow-hidden">
-                  {article.featuredImage ? (
+                  {article.featuredImage && !failedImageIds.has(article._id) ? (
                     <Image
                       src={article.featuredImage}
                       alt={article.title}
                       fill
+                      onError={() => handleImageError(article._id)}
                       className="object-cover group-hover:scale-105 transition-transform"
                       sizes="64px"
                     />
