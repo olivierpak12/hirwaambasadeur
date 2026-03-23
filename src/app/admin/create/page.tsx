@@ -79,6 +79,12 @@ export default function CreateArticlePage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminName, setAdminName] = useState('');
 
+  const categories = useQuery(api.categories.getAllCategories);
+  const authors = useQuery(api.authors.getAllAuthors);
+  const createArticle = useMutation(api.articles.createArticle);
+  const createAuthor = useMutation(api.authors.createAuthor);
+  const seedCategories = useMutation(api.categories.seedCategories);
+
   // Check authentication on mount
   useEffect(() => {
     const token = localStorage.getItem('adminToken');
@@ -102,12 +108,6 @@ export default function CreateArticlePage() {
       });
     }
   }, [isAuthenticated, categories, seedCategories]);
-
-  const categories = useQuery(api.categories.getAllCategories);
-  const authors = useQuery(api.authors.getAllAuthors);
-  const createArticle = useMutation(api.articles.createArticle);
-  const createAuthor = useMutation(api.authors.createAuthor);
-  const seedCategories = useMutation(api.categories.seedCategories);
 
   const [title, setTitle]                     = useState('');
   const [excerpt, setExcerpt]                 = useState('');
