@@ -423,6 +423,22 @@ export default function ArticlesAdminPage() {
             </div>
 
             <div style={{ marginBottom: 20 }}>
+              <Label>Category</Label>
+              <select
+                value={editCategory}
+                onChange={(e) => setEditCategory(e.target.value)}
+                style={{...field, cursor: 'pointer'}}
+              >
+                <option value="">Select a category</option>
+                {categories && categories.map((cat: any) => (
+                  <option key={cat._id} value={cat._id}>
+                    {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
               <Label>Status</Label>
               <select
                 value={editStatus}
