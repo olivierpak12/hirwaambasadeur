@@ -71,9 +71,6 @@ export default function ArticlePage() {
   return (
     <>
       <style>{`
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        main, article, aside, section, header { display: block; margin: 0; padding: 0; }
-
         /* ─────────────────────────────────────────────
            PAGE SHELL — true full-screen, no gutters
         ───────────────────────────────────────────── */

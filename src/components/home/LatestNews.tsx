@@ -32,7 +32,7 @@ export default function LatestNews() {
   const latestArticles = articles.slice(5, 11); // Skip featured articles
 
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-12 bg-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-2xl font-bold text-gray-900">Latest News</h2>
@@ -46,7 +46,7 @@ export default function LatestNews() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {latestArticles.map((article) => (
-            <article key={article._id} className="bg-white rounded-lg shadow-sm overflow-hidden hover:shadow-md transition-shadow">
+            <article key={article._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
               <Link href={`/article/${article.slug}`}>
                 <div className="relative aspect-[16/9] overflow-hidden">
                   {article.featuredImage ? (
@@ -54,7 +54,7 @@ export default function LatestNews() {
                       src={article.featuredImage}
                       alt={article.title}
                       fill
-                      className="object-cover"
+                      className="object-cover transition-transform hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />
                   ) : (
@@ -69,7 +69,7 @@ export default function LatestNews() {
 
               <div className="p-6">
                 <div className="flex items-center space-x-2 mb-3">
-                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
                     {article.category?.name || 'News'}
                   </span>
                   <span className="text-gray-500 text-sm">{timeAgo(article.publishedAt)}</span>

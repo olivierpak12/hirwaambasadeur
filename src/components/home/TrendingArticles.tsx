@@ -45,7 +45,7 @@ export default function TrendingArticles() {
       <div className="space-y-4">
         {trending.map((article, index) => (
           <Link key={article._id} href={`/article/${article.slug}`} className="group block">
-            <div className="flex space-x-3">
+            <div className="flex space-x-4">
               <div className="flex-shrink-0">
                 <div className="w-16 h-16 relative rounded overflow-hidden">
                   {article.featuredImage ? (
@@ -68,7 +68,7 @@ export default function TrendingArticles() {
 
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
+                  <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
                     {article.category?.name || 'News'}
                   </span>
                   <span className="text-gray-500 text-xs">{timeAgo(article.publishedAt)}</span>
@@ -84,7 +84,7 @@ export default function TrendingArticles() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                     </svg>
-                    <span className="text-xs text-gray-500">{article.views}</span>
+                    <span className="text-xs text-gray-500">{article.views.toLocaleString()} views</span>
                   </div>
                 )}
               </div>

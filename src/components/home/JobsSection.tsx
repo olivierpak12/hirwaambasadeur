@@ -1,55 +1,38 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Job, loadJobs, loadSeenJobIds, markJobsAsSeen } from '@/lib/jobs';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Job } from '@/lib/jobs';
 
 export default function JobsSection() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [unseenJobs, setUnseenJobs] = useState<Job[]>([]);
-  const [isHydrated, setIsHydrated] = useState(false);
-
-  useEffect(() => {
-    setIsHydrated(true);
-    const refresh = () => {
-      const latest = loadJobs();
-      setJobs(latest);
-      const seenIds = loadSeenJobIds();
-      const unseen = latest.filter((j) => !seenIds.includes(j.id));
-      if (unseen.length) setUnseenJobs(unseen);
-    };
-
-    window.addEventListener('storage', refresh);
-    window.addEventListener('focus', refresh);
-    window.addEventListener('jobsUpdated', refresh);
-
-    refresh();
-
-    return () => {
-      window.removeEventListener('storage', refresh);
-      window.removeEventListener('focus', refresh);
-      window.removeEventListener('jobsUpdated', refresh);
-    };
-  }, []);
+  const dbJobs = useQuery(api.jobs.getOpenJobs);
+  const jobs: Job[] = (dbJobs ?? []).map((job: any) => ({
+    id: job._id,
+    title: job.title,
+    department: job.department,
+    type: job.type as 'Full-time' | 'Part-time' | 'Contract' | 'Freelance',
+    location: job.location,
+    status: job.status as 'open' | 'closed',
+    postedAt: job.createdAt ? new Date(job.createdAt).toISOString().split('T')[0] : '',
+    description: job.description,
+    requirements: job.requirements,
+    benefits: job.benefits,
+  }));
 
   const openJobs = jobs.filter((job) => job.status === 'open');
-  if (!isHydrated || !openJobs.length) return null;
+  if (dbJobs === undefined) {
+    return null;
+  }
 
   const share = async (job: Job) => {
+    if (typeof window === 'undefined') return;
     const url = `${window.location.origin}/job/${job.id}`;
     try {
       await navigator.clipboard.writeText(url);
-      // Simple notification
       alert('Link copied to clipboard!');
     } catch {
       alert('Link copied to clipboard!');
-    }
-  };
-
-  const dismissJobNotification = () => {
-    if (unseenJobs.length) {
-      markJobsAsSeen(unseenJobs.map((j) => j.id));
-      setUnseenJobs([]);
     }
   };
 

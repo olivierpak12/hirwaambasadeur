@@ -10,9 +10,20 @@ export const getAllJobs = query({
 });
 
 export const getJobById = query({
-  args: { jobId: v.id('jobs') },
+  args: { jobId: v.string() },
   handler: async (ctx, { jobId }) => {
-    return await ctx.db.get(jobId);
+    // Accept both normalized Convex IDs and legacy string IDs for job routes.
+    const normalizedId = ctx.db.normalizeId('jobs', jobId);
+    if (normalizedId) {
+      return await ctx.db.get(normalizedId);
+    }
+
+    // Fallback: try to resolve by a stored id-like string in _id field if the literal doesn't match
+    const results = await ctx.db
+      .query('jobs')
+      .filter((q) => q.eq(q.field('_id'), jobId))
+      .collect();
+    return results.length > 0 ? results[0] : null;
   },
 });
 
@@ -110,7 +121,7 @@ export const getAllApplications = query({
 
 export const createJobApplication = mutation({
   args: {
-    jobId: v.id('jobs'),
+    jobId: v.string(),
     name: v.string(),
     email: v.string(),
     phone: v.optional(v.string()),
@@ -118,11 +129,22 @@ export const createJobApplication = mutation({
     resumeStorageId: v.optional(v.id('_storage')),
   },
   handler: async (ctx, args) => {
+    const normalizedJobId = ctx.db.normalizeId('jobs', args.jobId);
+    if (!normalizedJobId) {
+      throw new Error(`Invalid jobId: ${args.jobId}`);
+    }
+
     const appId = await ctx.db.insert('jobApplications', {
-      ...args,
+      jobId: normalizedJobId,
+      name: args.name,
+      email: args.email,
+      phone: args.phone,
+      coverLetter: args.coverLetter,
+      resumeStorageId: args.resumeStorageId,
       status: 'pending',
       appliedAt: new Date().toISOString(),
     });
+
     return appId;
   },
 });

@@ -69,72 +69,113 @@ export default function FeaturedArticles() {
   const recentArticles = articles.slice(1, 5);
 
   return (
-    <section className="py-8">
-      {/* Featured Article */}
-      <div className="mb-12">
+    <section className="bg-white">
+      {/* Featured Article - BBC Style */}
+      <div className="border-b border-gray-200 pb-8 mb-8">
         <Link href={`/article/${featured.slug}`} className="group block">
-          <div className="relative aspect-[16/9] mb-6 overflow-hidden rounded-lg">
-            {featured.featuredImage ? (
-              <Image
-                src={featured.featuredImage}
-                alt={featured.title}
-                fill
-                className="object-cover transition-transform group-hover:scale-105"
-                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                priority
-              />
-            ) : (
-              <PlaceholderImg height={400} index={0} />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            <div className="absolute bottom-6 left-6 right-6">
-              <div className="flex items-center space-x-2 mb-3">
-                <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-600 text-white">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Image */}
+            <div className="relative aspect-[4/3] lg:aspect-[3/4] overflow-hidden">
+              {featured.featuredImage ? (
+                <Image
+                  src={featured.featuredImage}
+                  alt={featured.title}
+                  fill
+                  className="object-cover transition-transform group-hover:scale-105"
+                  sizes="(max-width: 768px) 100vw, 50vw"
+                  priority
+                />
+              ) : (
+                <PlaceholderImg height={400} index={0} />
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="flex flex-col justify-center">
+              <div className="mb-4">
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-red-600 text-white">
                   {featured.category?.name || 'News'}
                 </span>
-                <span className="text-white/80 text-sm">{timeAgo(featured.publishedAt)}</span>
               </div>
-              <h1 className="text-3xl lg:text-4xl font-bold text-white mb-2 group-hover:text-red-300 transition-colors">
+
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900 mb-4 leading-tight group-hover:text-red-600 transition-colors">
                 {featured.title}
               </h1>
-              <p className="text-white/90 text-lg line-clamp-2">{featured.excerpt}</p>
+
+              <p className="text-lg text-gray-700 mb-4 leading-relaxed">
+                {featured.excerpt}
+              </p>
+
+              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                <span>{timeAgo(featured.publishedAt)}</span>
+                {featured.author?.name && (
+                  <>
+                    <span>•</span>
+                    <span>By {featured.author.name}</span>
+                  </>
+                )}
+                {featured.views && (
+                  <>
+                    <span>•</span>
+                    <span>{featured.views.toLocaleString()} views</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </Link>
       </div>
 
-      {/* Recent Articles Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {recentArticles.map((article, index) => (
-          <Link key={article._id} href={`/article/${article.slug}`} className="group block">
-            <div className="space-y-3">
-              <div className="relative aspect-[4/3] overflow-hidden rounded-lg">
-                {article.featuredImage ? (
-                  <Image
-                    src={article.featuredImage}
-                    alt={article.title}
-                    fill
-                    className="object-cover transition-transform group-hover:scale-105"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
-                  />
-                ) : (
-                  <PlaceholderImg height={200} index={index + 1} />
-                )}
-              </div>
-              <div>
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800">
-                    {article.category?.name || 'News'}
-                  </span>
-                  <span className="text-gray-500 text-xs">{timeAgo(article.publishedAt)}</span>
+      {/* Secondary Articles Grid */}
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900 mb-6">More Stories</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {recentArticles.map((article, index) => (
+            <Link key={article._id} href={`/article/${article.slug}`} className="group block">
+              <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="relative aspect-[16/9] overflow-hidden">
+                  {article.featuredImage ? (
+                    <Image
+                      src={article.featuredImage}
+                      alt={article.title}
+                      fill
+                      className="object-cover transition-transform group-hover:scale-105"
+                      sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                    />
+                  ) : (
+                    <PlaceholderImg height={200} index={index + 1} />
+                  )}
                 </div>
-                <h3 className="font-semibold text-gray-900 group-hover:text-red-600 transition-colors line-clamp-2">
-                  {article.title}
-                </h3>
+
+                <div className="p-4">
+                  <div className="mb-2">
+                    <span className="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-gray-100 text-gray-800">
+                      {article.category?.name || 'News'}
+                    </span>
+                  </div>
+
+                  <h3 className="font-bold text-gray-900 mb-2 line-clamp-2 group-hover:text-red-600 transition-colors">
+                    {article.title}
+                  </h3>
+
+                  <p className="text-sm text-gray-600 line-clamp-2 mb-3">
+                    {article.excerpt}
+                  </p>
+
+                  <div className="flex items-center text-xs text-gray-500">
+                    <span>{timeAgo(article.publishedAt)}</span>
+                    {article.author?.name && (
+                      <>
+                        <span className="mx-2">•</span>
+                        <span>{article.author.name}</span>
+                      </>
+                    )}
+                  </div>
+                </div>
               </div>
-            </div>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
       </div>
     </section>
   );

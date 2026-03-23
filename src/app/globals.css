@@ -1,6 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-gold: #c9a84c;
+  --color-gold-light: #f7f0dc;
+  --color-gold-dark: #5a4010;
+  --color-forest: #0f2318;
+  --color-forest-mid: #1a3d28;
+  --color-forest-border: #2a4a35;
+  --color-forest-muted: #a0b8a8;
+  --color-text-light: #f0ece0;
+
+  --font-family-serif: Georgia, "Times New Roman", serif;
+  --font-family-sans: "Source Sans 3", system-ui, sans-serif;
+}
 
 :root {
   --gold: #c9a84c;

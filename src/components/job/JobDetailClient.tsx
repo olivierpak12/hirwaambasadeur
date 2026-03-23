@@ -2,7 +2,9 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { addApplication, JobApplication, loadJobs } from '@/lib/jobs';
+import { useMutation, useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
+import { Job } from '@/lib/jobs';
 
 function formatDate(iso: string) {
   try {
@@ -13,8 +15,26 @@ function formatDate(iso: string) {
 }
 
 export default function JobDetailClient({ id }: { id: string }) {
-  const job = useMemo(() => loadJobs().find((j) => j.id === id) ?? null, [id]);
-  const [status, setStatus] = useState<'idle' | 'submitted'>('idle');
+  const dbJob = useQuery(api.jobs.getJobById, { jobId: id });
+  const createApplication = useMutation(api.jobs.createJobApplication);
+
+  const job: Job | null | undefined = useMemo(() => {
+    if (!dbJob) return dbJob === null ? null : undefined;
+    return {
+      id: dbJob._id,
+      title: dbJob.title,
+      department: dbJob.department,
+      type: dbJob.type as 'Full-time' | 'Part-time' | 'Contract' | 'Freelance',
+      location: dbJob.location,
+      status: dbJob.status as 'open' | 'closed',
+      postedAt: dbJob.createdAt ? new Date(dbJob.createdAt).toISOString().split('T')[0] : '',
+      description: dbJob.description,
+      requirements: dbJob.requirements,
+      benefits: dbJob.benefits,
+    };
+  }, [dbJob]);
+
+  const [status, setStatus] = useState<'idle' | 'submitted' | 'error'>('idle');
   const [form, setForm] = useState({ name: '', email: '', coverLetter: '' });
   const [resume, setResume] = useState<File | null>(null);
 
@@ -23,29 +43,21 @@ export default function JobDetailClient({ id }: { id: string }) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!job) return;
-    const newApp: JobApplication = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      jobId: job.id,
-      name: form.name,
-      email: form.email,
-      coverLetter: form.coverLetter,
-      resumeName: resume?.name,
-      resumeDataUrl: '',
-      status: 'pending',
-      appliedAt: new Date().toISOString(),
-    };
 
-    if (resume) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        newApp.resumeDataUrl = reader.result as string;
-        addApplication(newApp);
-        setStatus('submitted');
-      };
-      reader.readAsDataURL(resume);
-    } else {
-      addApplication(newApp);
+    try {
+      await createApplication({
+        jobId: job.id,
+        name: form.name,
+        email: form.email,
+        coverLetter: form.coverLetter,
+      });
+
       setStatus('submitted');
+      setForm({ name: '', email: '', coverLetter: '' });
+      setResume(null);
+    } catch (error) {
+      console.error(error);
+      setStatus('error');
     }
   };
 

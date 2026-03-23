@@ -115,27 +115,27 @@ export default function Newsletter({
 
   return (
     <div className={className}>
-      <h3 className="font-serif text-[#0f2318] text-xl font-normal mb-1">{title}</h3>
-      <p className="text-[#5a4010] text-sm mb-4">{description}</p>
+      <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>
+      <p className="text-gray-600 text-sm mb-4">{description}</p>
 
       {isDone ? (
-        <p className="text-[#0f2318] font-medium text-base">{successMessage}</p>
+        <p className="text-green-600 font-medium text-base">{successMessage}</p>
       ) : needsVerification ? (
-        <div className="space-y-2">
-          <p className="text-[#0f2318] text-sm">We sent a verification code to <strong>{email}</strong>. Enter it below to confirm.</p>
+        <div className="space-y-3">
+          <p className="text-gray-700 text-sm">We sent a verification code to <strong>{email}</strong>. Enter it below to confirm.</p>
           <div className="flex gap-2">
             <input
               type="text"
               value={code}
               onChange={(e) => setCode(e.target.value)}
               placeholder="Enter code"
-              className="flex-1 px-3 py-2 border-none rounded text-sm bg-[#f7f0dc] text-[#0f2318] outline-none"
+              className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
               disabled={isSubmitting}
             />
             <button
               onClick={handleVerify}
               disabled={isSubmitting}
-              className="bg-[#0f2318] text-[#c9a84c] border-none px-4 py-2 rounded text-sm uppercase tracking-wide cursor-pointer font-medium hover:bg-[#1a3d28] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="bg-red-600 text-white border-none px-4 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSubmitting ? 'Verifying…' : 'Verify'}
             </button>
@@ -144,12 +144,12 @@ export default function Newsletter({
             type="button"
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="text-[11px] text-[#5a8a6a] hover:text-[#1a3d28]"
+            className="text-xs text-red-600 hover:text-red-700"
           >
             Resend code
           </button>
           {debugCode && (
-            <p className="text-xs text-[#4a4a4a]">(Dev only) Code: {debugCode}</p>
+            <p className="text-xs text-gray-500">(Dev only) Code: {debugCode}</p>
           )}
         </div>
       ) : (
@@ -159,13 +159,13 @@ export default function Newsletter({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={placeholder}
-            className="flex-1 px-3 py-2 border-none rounded text-sm bg-[#f7f0dc] text-[#0f2318] outline-none"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded text-sm bg-white text-gray-900 outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500"
             disabled={isSubmitting}
           />
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="bg-[#0f2318] text-[#c9a84c] border-none px-4 py-2 rounded text-sm uppercase tracking-wide cursor-pointer font-medium hover:bg-[#1a3d28] transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+            className="bg-red-600 text-white border-none px-4 py-2 rounded text-sm font-medium hover:bg-red-700 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {isSubmitting ? 'Subscribing…' : buttonText}
           </button>

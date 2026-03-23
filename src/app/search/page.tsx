@@ -1,15 +1,20 @@
 'use client';
 
-import { Suspense, useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 function SearchContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const query = searchParams.get('q') || '';
   const [searchQuery, setSearchQuery] = useState(query);
+
+  useEffect(() => {
+    setSearchQuery(query);
+  }, [query]);
 
   const articles = useQuery(api.articles.getPublishedArticles) ?? [];
   const loading = articles === undefined;
@@ -27,7 +32,9 @@ function SearchContent() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    window.history.pushState({}, '', `/search?q=${encodeURIComponent(searchQuery)}`);
+    const trimmed = searchQuery.trim();
+    if (!trimmed) return;
+    router.push(`/search?q=${encodeURIComponent(trimmed)}`);
   };
 
   return (
@@ -109,7 +116,10 @@ function SearchContent() {
             {['Politics', 'Technology', 'Business', 'AI', 'Markets', 'Health'].map((term) => (
               <button
                 key={term}
-                onClick={() => setSearchQuery(term)}
+                onClick={() => {
+                  setSearchQuery(term);
+                  router.push(`/search?q=${encodeURIComponent(term)}`);
+                }}
                 className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-full text-sm transition"
               >
                 {term}

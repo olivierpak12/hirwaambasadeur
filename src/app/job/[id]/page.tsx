@@ -20,7 +20,7 @@ function JobDetailClient({ id }: { id: string }) {
   const [resume, setResume] = useState<File | null>(null);
   
   // Fetch the specific job from Convex database
-  const dbJob = useQuery(api.jobs.getJobById, { jobId: id as any });
+  const dbJob = useQuery(api.jobs.getJobById, { jobId: id });
   const createApplication = useMutation(api.jobs.createJobApplication);
   
   // Convert Convex job to Job format
