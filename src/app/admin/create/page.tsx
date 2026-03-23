@@ -234,6 +234,11 @@ export default function CreateArticlePage() {
     localStorage.removeItem('adminEmail');
     localStorage.removeItem('adminName');
     localStorage.removeItem('adminRole');
+    
+    // Clear cookies
+    document.cookie = 'adminToken=; path=/; max-age=0';
+    document.cookie = 'adminEmail=; path=/; max-age=0';
+    
     router.push('/auth/login');
   };
 

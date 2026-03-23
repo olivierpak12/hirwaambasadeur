@@ -27,11 +27,15 @@ export default function AdminLoginPage() {
 
       if (result.success) {
         console.log('Login successful, storing token and redirecting');
-        // Store token in localStorage
+        // Store token in both localStorage (for client-side) and cookie (for middleware)
         localStorage.setItem('adminToken', result.token);
         localStorage.setItem('adminEmail', result.admin.email);
         localStorage.setItem('adminName', result.admin.name);
         localStorage.setItem('adminRole', result.admin.role);
+        
+        // Also store in cookies for middleware authentication
+        document.cookie = `adminToken=${result.token}; path=/; max-age=${30 * 24 * 60 * 60}`;
+        document.cookie = `adminEmail=${result.admin.email}; path=/; max-age=${30 * 24 * 60 * 60}`;
 
         // Redirect to admin dashboard
         router.push('/admin/create');
