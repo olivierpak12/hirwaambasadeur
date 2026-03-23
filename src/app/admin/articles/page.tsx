@@ -97,6 +97,8 @@ export default function ArticlesAdminPage() {
         updateData.categoryId = editCategory as any;
       }
 
+      console.log('Sending update data:', updateData);
+
       await updateArticle(updateData);
 
       setSavedMessage('✅ Article updated successfully!');

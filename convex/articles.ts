@@ -373,11 +373,39 @@ export const updateArticle = mutation({
     status: v.optional(v.union(v.literal('draft'), v.literal('published'), v.literal('archived'))),
   },
   handler: async (ctx, { articleId, ...updates }) => {
+    console.log('updateArticle called with:', { articleId, updates });
+
+    // Verify the article exists
+    const existingArticle = await ctx.db.get(articleId);
+    if (!existingArticle) {
+      throw new Error(`Article with ID ${articleId} not found`);
+    }
+
+    // Validate required fields
+    if (updates.title && updates.title.trim().length === 0) {
+      throw new Error('Title cannot be empty');
+    }
+    if (updates.slug && updates.slug.trim().length === 0) {
+      throw new Error('Slug cannot be empty');
+    }
+    if (updates.content && updates.content.trim().length === 0) {
+      throw new Error('Content cannot be empty');
+    }
+
+    // Validate categoryId if provided
+    if (updates.categoryId) {
+      const category = await ctx.db.get(updates.categoryId);
+      if (!category) {
+        throw new Error(`Category with ID ${updates.categoryId} not found`);
+      }
+    }
+
     const now = new Date().toISOString();
-    await ctx.db.patch(articleId, {
-      ...updates,
-      updatedAt: now,
-    });
+    const finalUpdates = { ...updates, updatedAt: now };
+
+    console.log('Final updates:', finalUpdates);
+
+    await ctx.db.patch(articleId, finalUpdates);
     return articleId;
   },
 });
