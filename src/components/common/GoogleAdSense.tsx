@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 
 interface GoogleAdSenseProps {
   slot?: string;
@@ -11,7 +11,8 @@ interface GoogleAdSenseProps {
 }
 
 /**
- * Google AdSense Display Ad Component
+ * Google AdSense Display Ad Component with Intersection Observer
+ * Lazy loads ads only when they're about to become visible
  * 
  * Usage:
  * <GoogleAdSense slot="1234567890" />
@@ -25,25 +26,57 @@ export default function GoogleAdSense({
   className = '',
 }: GoogleAdSenseProps) {
   const publisherId = process.env.NEXT_PUBLIC_GOOGLE_ADSENSE_ID;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const hasProcessedRef = useRef(false);
 
   useEffect(() => {
     // Only push ad if we have both publisher ID and slot configured
-    if (!publisherId || !slot) {
+    if (!publisherId || !slot || !containerRef.current) {
       return;
     }
 
-    // Delay to ensure DOM is properly laid out
-    const timeoutId = setTimeout(() => {
-      if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
-        try {
-          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
-        } catch (err) {
-          console.error('AdSense error:', err);
-        }
+    // Use Intersection Observer to lazy-load ads only when near viewport
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting && !hasProcessedRef.current) {
+            hasProcessedRef.current = true;
+            // Use requestIdleCallback if available for better performance
+            if ('requestIdleCallback' in window) {
+              (window as any).requestIdleCallback(() => {
+                if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
+                  try {
+                    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+                  } catch (err) {
+                    console.error('AdSense error:', err);
+                  }
+                }
+              });
+            } else {
+              // Fallback to setTimeout for older browsers
+              setTimeout(() => {
+                if (typeof window !== 'undefined' && (window as any).adsbygoogle) {
+                  try {
+                    ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+                  } catch (err) {
+                    console.error('AdSense error:', err);
+                  }
+                }
+              }, 100);
+            }
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        rootMargin: '100px', // Start loading 100px before ad becomes visible
       }
-    }, 500);
+    );
 
-    return () => clearTimeout(timeoutId);
+    observer.observe(containerRef.current);
+    return () => {
+      observer.disconnect();
+    };
   }, [publisherId, slot]);
 
   // Don't render if no publisher ID or slot configured
@@ -53,6 +86,7 @@ export default function GoogleAdSense({
 
   return (
     <div
+      ref={containerRef}
       className={`google-adsense-container ${className}`}
       style={{
         display: 'flex',

@@ -42,8 +42,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* Google Fonts — Georgia fallback stack already covers serif; load
-            a refined sans for UI chrome without blocking render */}
+        {/* Google Fonts — with font-display=swap for faster rendering */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
@@ -51,7 +50,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           rel="stylesheet"
         />
         
-        {/* Google AdSense */}
+        {/* Google AdSense — Defer loading to improve FCP */}
         {publisherId && (
           <script
             async

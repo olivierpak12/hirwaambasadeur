@@ -2,7 +2,8 @@
 import { v } from 'convex/values';
 
 // Enrich articles with related entities and resolve storage URLs for images.
-async function enrichArticle(ctx: any, article: any) {
+// Set includeStats=false for list views to skip expensive comment/like count queries
+async function enrichArticle(ctx: any, article: any, includeStats = false) {
   const author = await ctx.db.get(article.authorId);
   const category = await ctx.db.get(article.categoryId);
 
@@ -15,63 +16,46 @@ async function enrichArticle(ctx: any, article: any) {
 
   // Check for direct URL first (from seed data or legacy storage)
   if (article.featuredImage && typeof article.featuredImage === 'string' && /^https?:\/\//.test(article.featuredImage)) {
-    console.log(`[ENRICH] "${article.title}": Using remote URL from featuredImage property`);
     featuredImages = [article.featuredImage];
   } else if (article.featuredImageIds && Array.isArray(article.featuredImageIds) && article.featuredImageIds.length > 0) {
-    // Resolve multiple storage IDs
-    console.log(`[ENRICH] "${article.title}": Resolving ${article.featuredImageIds.length} featured image IDs`);
+    // Resolve multiple storage IDs in parallel
     try {
       const urls = await Promise.all(
         article.featuredImageIds.map(async (storageId: any) => {
           try {
             const url = await ctx.storage.getUrl(storageId);
-            if (url) {
-              console.log(`[ENRICH] ✓ Resolved storage ID`);
-              return url;
-            } else {
-              console.warn(`[ENRICH] ✗ Storage ID returned null`);
-              return null;
-            }
+            return url || null;
           } catch (e) {
-            console.error(`[ENRICH] ✗ Failed to resolve image ID:`, String(e).substring(0, 100));
             return null;
           }
         })
       );
       const filtered = urls.filter(Boolean) as string[];
       if (filtered.length > 0) {
-        console.log(`[ENRICH] ✓ Resolved ${filtered.length}/${article.featuredImageIds.length} images`);
         featuredImages = filtered;
-      } else {
-        console.warn(`[ENRICH] ⚠️ No images resolved from ${article.featuredImageIds.length} IDs`);
       }
     } catch (e) {
-      console.error(`[ENRICH] ✗ Error processing featuredImageIds:`, e);
+      console.error(`Error resolving featured images:`, e);
     }
   } else if (article.featuredImageId) {
     // Fallback to single storage ID (legacy)
-    console.log(`[ENRICH] "${article.title}": Resolving single featured image ID`);
     try {
       const url = await ctx.storage.getUrl(article.featuredImageId);
       if (url) {
-        console.log(`[ENRICH] ✓ Single image resolved`);
         featuredImages = [url];
-      } else {
-        console.warn(`[ENRICH] ✗ featuredImageId returned null`);
       }
     } catch (e) {
-      console.error(`[ENRICH] ✗ Failed to resolve featuredImageId:`, e);
+      console.error(`Failed to resolve featuredImageId:`, e);
     }
-  } else {
-    console.log(`[ENRICH] "${article.title}": No featured image data found (checked featuredImage, featuredImageIds, featuredImageId)`);
   }
 
   let images: { url: string; caption?: string }[] | undefined;
   if (Array.isArray(article.images) && article.images.length > 0) {
-    console.log(`[ENRICH] "${article.title}": Processing ${article.images.length} gallery images`);
+    // Limit gallery image processing for performance
+    const imagesToProcess = article.images.slice(0, 10);
     images = (
       await Promise.all(
-        article.images.map(async (img: any) => {
+        imagesToProcess.map(async (img: any) => {
           // Legacy support: accept an explicit URL if provided
           if (typeof img?.url === 'string' && /^https?:\/\//.test(img.url)) {
             return { url: img.url, caption: img.caption };
@@ -81,7 +65,6 @@ async function enrichArticle(ctx: any, article: any) {
               const url = await ctx.storage.getUrl(img.storageId);
               return url ? { url, caption: img.caption } : null;
             } catch (e) {
-              console.error('Failed to get gallery image URL:', e);
               return null;
             }
           }
@@ -92,34 +75,30 @@ async function enrichArticle(ctx: any, article: any) {
 
     // If no explicit featured images were set, fall back to the first gallery image.
     if ((!featuredImages || featuredImages.length === 0) && images && images.length > 0) {
-      console.log(`[ENRICH] Using first gallery image as featured (fallback)`);
       featuredImages = [images[0].url];
     }
   }
 
-  // Get comment and like counts
-  const commentCount = (await ctx.db.query('comments').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
-  const likeCount = (await ctx.db.query('likes').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
+  // Get comment and like counts only if requested (expensive operation)
+  let commentCount = 0;
+  let likeCount = 0;
+  if (includeStats) {
+    commentCount = (await ctx.db.query('comments').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
+    likeCount = (await ctx.db.query('likes').filter((q: any) => q.eq(q.field('articleId'), article._id)).collect()).length;
+  }
 
   // The enriched article can return featured as either a single URL or array
   const resolvedFeaturedImage = featuredImages && featuredImages.length > 0 ? featuredImages[0] : undefined;
 
-  // DEBUG: Log what we're returning
-  console.log(`[ENRICH] "${article.title}": Returning featured=${!!resolvedFeaturedImage}, featuredImages.length=${featuredImages?.length || 0}, images=${images?.length || 0}`);
-  if (!resolvedFeaturedImage) {
-    console.warn(`[ENRICH WARNING] "${article.title}": No featured image resolved. Database had: featuredImage=${!!article.featuredImage}, featuredImageIds=${article.featuredImageIds?.length || 0}, featuredImageId=${!!article.featuredImageId}`);
-  }
-
   return {
     ...article,
-    featured: resolvedFeaturedImage || undefined,  // Return single URL (for backward compat) or undefined
-    featuredImages,  // Also include the array for components that want it
-    featuredImage: resolvedFeaturedImage || undefined,  // Include this for legacy components
+    featured: resolvedFeaturedImage || undefined,
+    featuredImages,
+    featuredImage: resolvedFeaturedImage || undefined,
     images,
     author: author ?? undefined,
     category: category ?? undefined,
-    commentCount,
-    likeCount,
+    ...(includeStats && { commentCount, likeCount }),
   };
 }
 
@@ -132,7 +111,50 @@ export const getPublishedArticles = query({
       .order('desc')
       .take(20);
 
-    return Promise.all(articles.map((article) => enrichArticle(ctx, article) as any));
+    // Don't include stats for list views
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article, false) as any));
+  },
+});
+
+// Paginated articles query for better performance on large datasets
+export const getPublishedArticlesPaginated = query({
+  args: {
+    page: v.number(),
+    pageSize: v.optional(v.number()),
+  },
+  returns: v.any(),
+  handler: async (ctx, { page, pageSize = 12 }) => {
+    // Convex uses take() for pagination, not skip()
+    const skip = Math.max(0, (page - 1) * pageSize);
+    
+    // Get total count for pagination
+    const allArticles = await ctx.db
+      .query('articles')
+      .filter((q) => q.eq(q.field('status'), 'published'))
+      .collect();
+    
+    const total = allArticles.length;
+    
+    // Implement pagination in-memory or use take() at higher offset
+    // Get all articles and slice for the requested page
+    const articles = allArticles
+      .sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime())
+      .slice(skip, skip + pageSize);
+
+    const enriched = await Promise.all(
+      articles.map((article) => enrichArticle(ctx, article, false) as any)
+    );
+
+    return {
+      articles: enriched,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+        hasMore: skip + pageSize < total,
+      },
+    };
   },
 });
 
@@ -144,13 +166,14 @@ export const getAllArticles = query({
       .order('desc')
       .collect();
 
-    return Promise.all(articles.map((article) => enrichArticle(ctx, article) as any));
+    // Don't include stats for list views
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article, false) as any));
   },
 });
 
 export const getArticleBySlug = query({
   args: { slug: v.string() },
-  returns: v.any(), // Allow enriched fields (featuredImage, featuredImages, images)
+  returns: v.any(),
   handler: async (ctx, { slug }) => {
     const articles = await ctx.db
       .query('articles')
@@ -158,7 +181,8 @@ export const getArticleBySlug = query({
       .take(1);
 
     if (!articles.length) return null;
-    return enrichArticle(ctx, articles[0]) as any;
+    // Include stats for detail page
+    return enrichArticle(ctx, articles[0], true) as any;
   },
 });
 
@@ -180,7 +204,68 @@ export const getArticlesByCategory = query({
       .order('desc')
       .take(20);
 
-    return Promise.all(articles.map((article) => enrichArticle(ctx, article) as any));
+    // Don't include stats for list views
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article, false) as any));
+  },
+});
+
+// Paginated articles by category
+export const getArticlesByCategoryPaginated = query({
+  args: { 
+    categorySlug: v.string(),
+    page: v.number(),
+    pageSize: v.optional(v.number()),
+  },
+  returns: v.any(),
+  handler: async (ctx, { categorySlug, page, pageSize = 12 }) => {
+    const category = await ctx.db
+      .query('categories')
+      .filter((q) => q.eq(q.field('slug'), categorySlug))
+      .take(1);
+
+    if (!category.length) {
+      return {
+        articles: [],
+        pagination: {
+          page,
+          pageSize,
+          total: 0,
+          totalPages: 0,
+          hasMore: false,
+        },
+      };
+    }
+
+    const skip = Math.max(0, (page - 1) * pageSize);
+    
+    // Get total count and all articles
+    const allArticles = await ctx.db
+      .query('articles')
+      .filter((q) => q.eq(q.field('status'), 'published'))
+      .filter((q) => q.eq(q.field('categoryId'), category[0]._id))
+      .collect();
+    
+    const total = allArticles.length;
+
+    // Implement pagination in-memory
+    const articles = allArticles
+      .sort((a, b) => new Date(b.publishedAt || 0).getTime() - new Date(a.publishedAt || 0).getTime())
+      .slice(skip, skip + pageSize);
+
+    const enriched = await Promise.all(
+      articles.map((article) => enrichArticle(ctx, article, false) as any)
+    );
+
+    return {
+      articles: enriched,
+      pagination: {
+        page,
+        pageSize,
+        total,
+        totalPages: Math.ceil(total / pageSize),
+        hasMore: skip + pageSize < total,
+      },
+    };
   },
 });
 
@@ -225,7 +310,7 @@ export const getAuthorByName = query({
       .take(20);
 
     const enrichedArticles = await Promise.all(
-      articles.map((article) => enrichArticle(ctx, article) as any)
+      articles.map((article) => enrichArticle(ctx, article, false) as any)
     );
 
     return { ...author, articles: enrichedArticles };
@@ -250,7 +335,8 @@ export const getRelatedArticles = query({
       .order('desc')
       .take(limit);
 
-    return Promise.all(articles.map((article) => enrichArticle(ctx, article) as any));
+    // Don't include stats for related articles list
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article, false) as any));
   },
 });
 
@@ -264,8 +350,9 @@ export const getAuthorArticles = query({
       .order('desc')
       .collect();
 
+    // Don't include stats for author's article list
     return Promise.all(
-      articles.map((article) => enrichArticle(ctx, article) as any)
+      articles.map((article) => enrichArticle(ctx, article, false) as any)
     );
   },
 });
@@ -287,7 +374,8 @@ export const getLatestArticles = query({
     }
     
     const articles = await query.take(limit);
-    return Promise.all(articles.map((article) => enrichArticle(ctx, article) as any));
+    // Don't include stats for latest articles list
+    return Promise.all(articles.map((article) => enrichArticle(ctx, article, false) as any));
   },
 });
 

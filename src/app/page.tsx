@@ -1,13 +1,19 @@
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import FeaturedArticles from '@/components/home/FeaturedArticles';
 import LatestNews from '@/components/home/LatestNews';
 import TrendingArticles from '@/components/home/TrendingArticles';
-import Newsletter from '@/components/home/Newsletter';
-import { SidebarAd } from '@/components/common/AdPlacements';
-import JobsSection from '@/components/home/JobsSection';
-import CategoryFilter from '@/components/home/CategoryFilter';
+// Lazy load below-the-fold components
+const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
+const JobsSection = dynamic(() => import('@/components/home/JobsSection'));
 
 export default function Home() {
+  const LoadingFallback = () => (
+    <div className="min-h-[400px] flex items-center justify-center">
+      <div className="animate-pulse text-gray-400">Loading...</div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-white">
       <Suspense fallback={
@@ -53,8 +59,12 @@ export default function Home() {
           </div>
         </div>
 
-        <JobsSection />
-        <Newsletter />
+        <Suspense fallback={<LoadingFallback />}>
+          <JobsSection />
+        </Suspense>
+        <Suspense fallback={<LoadingFallback />}>
+          <Newsletter />
+        </Suspense>
       </Suspense>
     </div>
   );
