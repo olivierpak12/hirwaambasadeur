@@ -117,6 +117,7 @@ export default function CreateArticlePage() {
   const [tags, setTags]                       = useState<string[]>([]);
   const [tagInput, setTagInput]               = useState('');
   const [featuredImages, setFeaturedImages] = useState<Array<{ storageId: string; caption: string }>>([]);
+  const [featuredImageUrl, setFeaturedImageUrl] = useState(''); // Direct URL input for Unsplash etc
   const [images, setImages] = useState<Array<{ storageId: string; caption: string }>>([]);
   const [status, setStatus]                   = useState('draft');
   const [saving, setSaving]                   = useState(false);
@@ -186,6 +187,7 @@ export default function CreateArticlePage() {
         slug,
         content,
         excerpt,
+        featuredImage: featuredImageUrl || undefined, // Direct URL takes priority
         featuredImageIds: featuredImages.length > 0 ? featuredImages.map(img => img.storageId as any) : undefined,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
@@ -210,6 +212,7 @@ export default function CreateArticlePage() {
       setTags([]);
       setTagInput('');
       setFeaturedImages([]);
+      setFeaturedImageUrl('');
       setImages([]);
       setStatus('draft');
     } catch (err) {
@@ -857,14 +860,56 @@ export default function CreateArticlePage() {
             }}>
               <div style={{ padding: '10px 14px', borderBottom: '1px solid rgba(201,168,76,0.08)', display: 'flex', alignItems: 'center', gap: 6 }}>
                 <div style={{ width: 3, height: 14, background: '#c9a84c', borderRadius: 2 }} />
-                <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Featured Images (up to 5)</span>
+                <span style={{ fontSize: 10, color: '#5a8a6a', fontWeight: 800, letterSpacing: '0.12em', textTransform: 'uppercase' }}>Featured Image</span>
               </div>
-              <div style={{ padding: '14px' }}>
-                <MultiImageUpload
-                  onImagesChange={setFeaturedImages}
-                  maxImages={5}
-                  label="Upload featured photos"
-                />
+              <div style={{ padding: '14px', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {/* Direct URL input - PREFERRED for Unsplash/external images */}
+                <div>
+                  <label style={{ fontSize: 11, color: '#a0b8a8', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                    Paste Image URL (Unsplash, etc.) - Recommended for production
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://images.unsplash.com/..."
+                    value={featuredImageUrl}
+                    onChange={(e) => setFeaturedImageUrl(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      fontSize: 12,
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(201,168,76,0.12)',
+                      borderRadius: 3,
+                      color: '#e8dfc8',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(201,168,76,0.12)'}
+                  />
+                  <div style={{ fontSize: 10, color: '#5a8a6a', marginTop: 6 }}>
+                    💡 Direct URLs work best in production. Try: https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800
+                  </div>
+                </div>
+
+                {/* OR divider */}
+                <div style={{ textAlign: 'center', color: '#5a8a6a', fontSize: 11, fontWeight: 600, padding: '8px 0' }}>
+                  — OR —
+                </div>
+
+                {/* File upload - backup option */}
+                <div>
+                  <label style={{ fontSize: 11, color: '#a0b8a8', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                    Upload File (optional - slower for production)
+                  </label>
+                  <MultiImageUpload
+                    onImagesChange={setFeaturedImages}
+                    maxImages={5}
+                    label="Upload featured photos"
+                  />
+                </div>
               </div>
             </div>
 
