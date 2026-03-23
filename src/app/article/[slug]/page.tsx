@@ -624,10 +624,10 @@ export default function ArticlePage() {
                 </header>
 
                 {/* Hero image */}
-                {article.featuredImageUrl && (
+                {(article.featuredImageUrl || article.featuredImage || article.featured) && (
                   <>
                     <div className="ap-hero">
-                      <img src={article.featuredImageUrl} alt={article.title} loading="lazy" />
+                      <img src={article.featuredImageUrl || article.featuredImage || article.featured} alt={article.title} loading="lazy" />
                     </div>
                     {article.featuredImageCaption && (
                       <p className="ap-hero-caption">{article.featuredImageCaption}</p>
@@ -662,8 +662,8 @@ export default function ArticlePage() {
                       {relatedArticles.map((rel: any) => (
                         <a key={rel._id} href={`/article/${rel.slug}`} className="ap-related-card">
                           <div className="ap-related-thumb">
-                            {rel.featuredImageUrl && (
-                              <img src={rel.featuredImageUrl} alt={rel.title} loading="lazy" />
+                            {(rel.featuredImageUrl || rel.featuredImage || rel.featured) && (
+                              <img src={rel.featuredImageUrl || rel.featuredImage || rel.featured} alt={rel.title} loading="lazy" />
                             )}
                           </div>
                           <div className="ap-related-meta">
