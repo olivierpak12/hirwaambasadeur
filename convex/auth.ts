@@ -2,7 +2,7 @@ import { v } from 'convex/values';
 import { mutation, query } from './_generated/server';
 
 /**
- * Simple password hashing using TextEncoder (works in browser and Node)
+ * Simple password hashing using Web Crypto API (compatible with Convex)
  * For production, use bcryptjs: npm install bcryptjs
  */
 async function hashPassword(password: string): Promise<string> {
@@ -154,7 +154,19 @@ export const createSuperAdmin = mutation({
       .first();
 
     if (existing) {
-      throw new Error('Admin with this email already exists');
+      // Update existing admin with new password hash
+      await ctx.db.patch(existing._id, {
+        passwordHash: await hashPassword(args.password),
+        name: args.name,
+        role: 'super_admin',
+        isActive: true,
+      });
+      
+      return {
+        success: true,
+        adminId: existing._id,
+        message: 'Super admin updated successfully',
+      };
     }
 
     const adminId = await ctx.db.insert('admins', {
