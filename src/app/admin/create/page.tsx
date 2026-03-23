@@ -93,10 +93,21 @@ export default function CreateArticlePage() {
     setAdminName(name || 'Admin');
   }, [router]);
 
+  // Auto-seed categories if none exist
+  useEffect(() => {
+    if (isAuthenticated && categories !== undefined && categories.length === 0) {
+      console.log('No categories found, seeding...');
+      seedCategories().catch(error => {
+        console.error('Failed to seed categories:', error);
+      });
+    }
+  }, [isAuthenticated, categories, seedCategories]);
+
   const categories = useQuery(api.categories.getAllCategories);
   const authors = useQuery(api.authors.getAllAuthors);
   const createArticle = useMutation(api.articles.createArticle);
   const createAuthor = useMutation(api.authors.createAuthor);
+  const seedCategories = useMutation(api.categories.seedCategories);
 
   const [title, setTitle]                     = useState('');
   const [excerpt, setExcerpt]                 = useState('');
@@ -720,9 +731,13 @@ export default function CreateArticlePage() {
 
               <div style={{ padding: '14px' }}>
                 <Label>Category <span style={{ color: '#b04030', marginLeft: 2 }}>*</span></Label>
-                {!categories || categories.length === 0 ? (
+                {!categories ? (
                   <div style={{ padding: '10px', color: '#8a7a6a', fontSize: 12, textAlign: 'center', background: 'rgba(201,168,76,0.05)', borderRadius: 3 }}>
                     Loading categories...
+                  </div>
+                ) : categories.length === 0 ? (
+                  <div style={{ padding: '10px', color: '#8a7a6a', fontSize: 12, textAlign: 'center', background: 'rgba(201,168,76,0.05)', borderRadius: 3 }}>
+                    Seeding categories...
                   </div>
                 ) : (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6, marginBottom: 16 }} className="category-grid">
