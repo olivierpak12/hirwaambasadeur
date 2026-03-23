@@ -11,19 +11,20 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "**.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "clear-herring-860.convex.cloud",
+      },
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
   // Performance optimizations
-  swcMinify: true,
   experimental: {
     optimizeCss: true,
   },
   // Enable compression
   compress: true,
-  // Optimize fonts
-  optimizeFonts: true,
 };
 
 export default nextConfig;

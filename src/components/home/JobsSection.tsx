@@ -5,10 +5,12 @@ import Link from 'next/link';
 import { Job, loadJobs, loadSeenJobIds, markJobsAsSeen } from '@/lib/jobs';
 
 export default function JobsSection() {
-  const [jobs, setJobs] = useState<Job[]>(() => loadJobs());
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [unseenJobs, setUnseenJobs] = useState<Job[]>([]);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
+    setIsHydrated(true);
     const refresh = () => {
       const latest = loadJobs();
       setJobs(latest);
@@ -31,7 +33,7 @@ export default function JobsSection() {
   }, []);
 
   const openJobs = jobs.filter((job) => job.status === 'open');
-  if (!openJobs.length) return null;
+  if (!isHydrated || !openJobs.length) return null;
 
   const share = async (job: Job) => {
     const url = `${window.location.origin}/job/${job.id}`;
