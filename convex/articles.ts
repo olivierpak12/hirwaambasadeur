@@ -389,8 +389,17 @@ export const getTickerTitles = query({
       .filter((q) => q.eq(q.field('status'), 'published'))
       .order('desc')
       .take(5); // Get latest 5 articles for ticker
-    
-    return articles.map((article) => article.title);
+
+    const titles = articles
+      .filter((article) => typeof article.title === 'string' && article.title.trim().length > 0)
+      .map((article) => article.title.trim());
+
+    // Guard for missing data (older entries or malformed records)
+    if (titles.length === 0) {
+      return ['No headlines available'];
+    }
+
+    return titles;
   },
 });
 
