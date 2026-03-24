@@ -488,6 +488,7 @@ export const updateArticle = mutation({
     featuredImage: v.optional(v.string()),
     featuredImageIds: v.optional(v.array(v.id('_storage'))),
     categoryId: v.optional(v.id('categories')),
+    authorId: v.optional(v.id('authors')),
     tags: v.optional(v.array(v.string())),
     featured: v.optional(v.boolean()),
     youtubeUrl: v.optional(v.string()),
@@ -535,6 +536,28 @@ export const updateArticle = mutation({
         } catch (error) {
           console.error('Error validating categoryId:', error);
           throw new Error(`Invalid category ID: ${updates.categoryId}`);
+        }
+      }
+    }
+
+    // Validate authorId if provided
+    if (updates.authorId !== undefined) {
+      console.log('Validating authorId:', updates.authorId);
+      if (updates.authorId === null || updates.authorId === '') {
+        // Empty/null means no author selected, but authorId is required in schema
+        // We'll keep the existing authorId instead of updating it
+        delete updates.authorId;
+      } else {
+        // Validate that the author exists
+        try {
+          const author = await ctx.db.get(updates.authorId);
+          if (!author) {
+            throw new Error(`Author with ID ${updates.authorId} not found`);
+          }
+          console.log('Author found:', author.name);
+        } catch (error) {
+          console.error('Error validating authorId:', error);
+          throw new Error(`Invalid author ID: ${updates.authorId}`);
         }
       }
     }

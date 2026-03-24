@@ -29,6 +29,7 @@ export default function ArticlesAdminPage() {
   const [editFeaturedImageUrl, setEditFeaturedImageUrl] = useState('');
   const [editYoutubeUrl, setEditYoutubeUrl] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editAuthor, setEditAuthor] = useState('');
   const [editStatus, setEditStatus] = useState<'draft' | 'published' | 'archived'>('published');
   const [editTags, setEditTags] = useState('');
   const [editSaving, setEditSaving] = useState(false);
@@ -38,6 +39,7 @@ export default function ArticlesAdminPage() {
   // Queries and mutations
   const articles = useQuery(api.articles.getAllArticles);
   const categories = useQuery(api.categories.getAllCategories);
+  const authors = useQuery(api.authors.getAllAuthors);
   const updateArticle = useMutation(api.articles.updateArticle);
   const deleteArticle = useMutation(api.articles.deleteArticle);
   const updateStatus = useMutation(api.articles.updateArticleStatus);
@@ -65,6 +67,7 @@ export default function ArticlesAdminPage() {
     setEditFeaturedImageUrl(article.featuredImage || '');
     setEditYoutubeUrl(article.youtubeUrl || '');
     setEditCategory(article.categoryId);
+    setEditAuthor(article.authorId);
     setEditStatus(article.status);
     setEditTags((article.tags || []).join(', '));
     setError('');
@@ -98,6 +101,11 @@ export default function ArticlesAdminPage() {
       // Only include categoryId if it's not empty
       if (editCategory && editCategory.trim()) {
         updateData.categoryId = editCategory.trim();
+      }
+
+      // Only include authorId if it's not empty
+      if (editAuthor && editAuthor.trim()) {
+        updateData.authorId = editAuthor.trim();
       }
 
       console.log('Sending update data:', JSON.stringify(updateData, null, 2));
@@ -455,6 +463,22 @@ export default function ArticlesAdminPage() {
                 {categories && categories.map((cat: any) => (
                   <option key={cat._id} value={cat._id}>
                     {cat.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <Label>Author</Label>
+              <select
+                value={editAuthor}
+                onChange={(e) => setEditAuthor(e.target.value)}
+                style={{...field, cursor: 'pointer'}}
+              >
+                <option value="">Select an author</option>
+                {authors && authors.map((author: any) => (
+                  <option key={author._id} value={author._id}>
+                    {author.name}
                   </option>
                 ))}
               </select>
