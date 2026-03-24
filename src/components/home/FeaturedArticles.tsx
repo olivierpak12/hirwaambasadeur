@@ -94,7 +94,55 @@ export default function FeaturedArticles() {
   
 
   return (
-    <section className="bg-white">
+    <>
+      <style jsx>{`
+        /* ══ YOUTUBE VIDEO ══ */
+        .youtube-outer {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin: 1.8em 0;
+        }
+        .youtube-label {
+          font-family: 'DM Sans', sans-serif;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.13em;
+          text-transform: uppercase;
+          color: #aaa;
+          margin-bottom: 8px;
+          align-self: flex-start;
+          margin-left: calc(6%);
+        }
+        .youtube-wrap {
+          position: relative;
+          width: 88%;
+          max-width: 500px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #000;
+          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+          transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .youtube-wrap::before {
+          content: '';
+          display: block;
+          padding-bottom: 56.25%;
+        }
+        .youtube-wrap:hover {
+          box-shadow: 0 8px 26px rgba(0,0,0,0.2);
+          transform: translateY(-2px);
+        }
+        .youtube-wrap iframe {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
+      `}</style>
+      <section className="bg-white">
       {/* Featured Article - BBC Style */}
       <div className="border-b border-gray-200 pb-8 mb-8">
         <Link href={`/article/${featured.slug}`} className="group block">
@@ -152,14 +200,14 @@ export default function FeaturedArticles() {
         </Link>
 
         {featured.youtubeUrl && getYouTubeVideoId(featured.youtubeUrl) && (
-          <div className="mt-6 flex justify-center">
-            <div className="w-full max-w-4xl aspect-video overflow-hidden rounded-lg">
+          <div className="youtube-outer">
+            <span className="youtube-label">▶ Watch</span>
+            <div className="youtube-wrap">
               <iframe
-                src={`https://www.youtube.com/embed/${getYouTubeVideoId(featured.youtubeUrl)}?rel=0&showinfo=0`}
+                src={`https://www.youtube.com/embed/${getYouTubeVideoId(featured.youtubeUrl)}?rel=0&showinfo=0&modestbranding=1`}
                 title="Featured video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
-                style={{ width: '100%', height: '100%', border: '0' }}
               />
             </div>
           </div>
@@ -219,5 +267,6 @@ export default function FeaturedArticles() {
         </div>
       </div>
     </section>
+    </>
   );
 }
