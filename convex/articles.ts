@@ -487,7 +487,7 @@ export const updateArticle = mutation({
     content: v.optional(v.string()),
     featuredImage: v.optional(v.string()),
     featuredImageIds: v.optional(v.array(v.id('_storage'))),
-    categoryId: v.optional(v.union(v.id('categories'), v.string())),
+    categoryId: v.optional(v.id('categories')),
     tags: v.optional(v.array(v.string())),
     featured: v.optional(v.boolean()),
     youtubeUrl: v.optional(v.string()),
@@ -520,11 +520,16 @@ export const updateArticle = mutation({
     // Validate categoryId if provided
     if (updates.categoryId !== undefined) {
       console.log('Validating categoryId:', updates.categoryId);
-      const category = await ctx.db.get(updates.categoryId);
-      if (!category) {
-        throw new Error(`Category with ID ${updates.categoryId} not found`);
+      if (typeof updates.categoryId === 'string' && updates.categoryId.trim() === '') {
+        // Empty string means no category selected, remove it
+        updates.categoryId = undefined;
+      } else {
+        const category = await ctx.db.get(updates.categoryId as any) as any;
+        if (!category) {
+          throw new Error(`Category with ID ${updates.categoryId} not found`);
+        }
+        console.log('Category found:', category.name);
       }
-      console.log('Category found:', category.name);
     }
 
     const now = new Date().toISOString();

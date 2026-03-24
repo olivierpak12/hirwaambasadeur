@@ -14,9 +14,9 @@ interface ArticleDisplayProps {
     title: string;
     excerpt: string;
     content: string;
-    featured?: string | boolean;  // Can be URL string or boolean flag
-    featuredImage?: string;        // Resolved URL (from backend enrichment)
-    featuredImages?: string[];     // Array of resolved URLs (from backend enrichment)
+    featured?: string | boolean;
+    featuredImage?: string;
+    featuredImages?: string[];
     images?: Array<{ url: string; caption?: string }>;
     author?: { name: string; bio: string; photo?: string; _id?: string };
     category?: { name: string; slug: string };
@@ -62,24 +62,17 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   const bodyRef = useRef<HTMLDivElement>(null);
 
   // Build master image list from backend-resolved properties
-  // The backend enrichArticle() resolves storage IDs to signed URLs
   const featuredImages: string[] = (() => {
-    // Check featuredImages array first (preferred)
     if (article.featuredImages && Array.isArray(article.featuredImages) && article.featuredImages.length > 0) {
       const validated = article.featuredImages.filter(img => typeof img === 'string' && img.length > 10);
       if (validated.length > 0) return validated;
     }
-    
-    // Fallback to single featuredImage property (from seed or legacy data)
     if (article.featuredImage && typeof article.featuredImage === 'string' && article.featuredImage.length > 10) {
       return [article.featuredImage];
     }
-    
-    // No images found
     return [];
   })();
 
-  // Debug: Log resolved images from backend
   useEffect(() => {
     if (featuredImages.length === 0) {
       console.warn(`⚠️ [${article.title}] No featured images resolved`);
@@ -166,6 +159,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
   const cur = lbList[lbIndex];
   const heroCount = featuredImages.filter(u => !failedImages.has(u)).length;
+  const youtubeId = getYouTubeVideoId(article.youtubeUrl);
 
   return (
     <>
@@ -229,6 +223,52 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
         .art-ad { background: #fafaf8; border: 1px dashed #d0cbc0; border-radius: 3px; text-align: center; padding: 10px; margin-bottom: 24px; }
         .art-ad p { font-family: 'DM Sans', sans-serif; font-size: 9px; color: #bbb; letter-spacing: 0.1em; text-transform: uppercase; margin: 0; }
+
+        /* ══ YOUTUBE VIDEO ══ */
+        .youtube-outer {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          margin: 1.8em 0;
+        }
+        .youtube-label {
+          font-family: 'DM Sans', sans-serif;
+          font-size: 9px;
+          font-weight: 700;
+          letter-spacing: 0.13em;
+          text-transform: uppercase;
+          color: #aaa;
+          margin-bottom: 8px;
+          align-self: flex-start;
+          margin-left: calc(6%);
+        }
+        .youtube-wrap {
+          position: relative;
+          width: 88%;
+          max-width: 500px;
+          border-radius: 8px;
+          overflow: hidden;
+          background: #000;
+          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
+          transition: box-shadow 0.3s ease, transform 0.3s ease;
+        }
+        .youtube-wrap::before {
+          content: '';
+          display: block;
+          padding-bottom: 56.25%;
+        }
+        .youtube-wrap:hover {
+          box-shadow: 0 8px 26px rgba(0,0,0,0.2);
+          transform: translateY(-2px);
+        }
+        .youtube-wrap iframe {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          border: none;
+        }
 
         /* ══ BODY ══ */
         .art-body { font-family: 'Source Serif 4', Georgia, serif; }
@@ -349,6 +389,8 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           .lb-img-area { padding: 58px 80px 16px; }
           .lb-prev { left: 20px; }
           .lb-next { right: 20px; }
+          .youtube-label { margin-left: 0; }
+          .youtube-wrap { max-width: 480px; }
         }
 
         @media (min-width: 1200px) {
@@ -372,6 +414,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           .lb-prev { left: 6px; }
           .lb-next { right: 6px; }
           .lb-img-area { padding: 58px 46px 12px; }
+          .youtube-wrap { width: 94%; }
         }
       `}</style>
 
@@ -379,70 +422,54 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
         {/* ══ FEATURED IMAGE HERO ══ */}
         {featuredImages.length > 0 ? (
-          <>
-            <div className="hero-wrap" style={{ position: 'relative' }}>
-              {heroCount === 1 && (
-                <div className="hero-single" onClick={() => openLb(featuredImages[0], article.title)}>
-                  <img
-                    src={featuredImages[0]}
-                    alt={article.title}
-                    loading="eager"
-                    onError={() => {
-                      console.error('Featured image failed to load:', featuredImages[0]);
-                      setFailedImages(p => new Set([...p, featuredImages[0]]));
-                    }}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
-                  <div className="hero-expand-hint">⤢ View full</div>
-                </div>
-              )}
-
-              {heroCount >= 2 && (
-                <div className={`hero-multi c${Math.min(heroCount, 4)}`}>
-                  {featuredImages.slice(0, 4).map((url, i) => {
-                    const showMore = i === 3 && heroCount > 4;
-                    return (
-                      <div key={i} className="hmi" onClick={() => openLb(url, `${article.title} — ${i + 1}`)}>
-                        {!failedImages.has(url) ? (
-                          <img
-                            src={url}
-                            alt={`${article.title} ${i + 1}`}
-                            loading="eager"
-                            onError={() => {
-                              console.error('Gallery image failed to load:', url);
-                              setFailedImages(p => new Set([...p, url]));
-                            }}
-                          />
-                        ) : (
-                          <div style={{ width: '100%', height: '100%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 12 }}>Image not available</div>
-                        )}
-
-                        {showMore && (
-                          <div className="hero-more">
-                            <span>+{heroCount - 3}</span>
-                            <span>More Photos</span>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-
-            {article.youtubeUrl && getYouTubeVideoId(article.youtubeUrl) && (
-              <div style={{ width: '100%', maxWidth: 940, margin: '20px auto', position: 'relative', paddingBottom: '56.25%', height: 0 }}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(article.youtubeUrl)}?rel=0&showinfo=0`}
-                  title="Article video"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+          <div className="hero-wrap">
+            {heroCount === 1 && (
+              <div className="hero-single" onClick={() => openLb(featuredImages[0], article.title)}>
+                <img
+                  src={featuredImages[0]}
+                  alt={article.title}
+                  loading="eager"
+                  onError={() => {
+                    console.error('Featured image failed to load:', featuredImages[0]);
+                    setFailedImages(p => new Set([...p, featuredImages[0]]));
+                  }}
+                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                 />
+                <div className="hero-expand-hint">⤢ View full</div>
               </div>
             )}
-          </>
+
+            {heroCount >= 2 && (
+              <div className={`hero-multi c${Math.min(heroCount, 4)}`}>
+                {featuredImages.slice(0, 4).map((url, i) => {
+                  const showMore = i === 3 && heroCount > 4;
+                  return (
+                    <div key={i} className="hmi" onClick={() => openLb(url, `${article.title} — ${i + 1}`)}>
+                      {!failedImages.has(url) ? (
+                        <img
+                          src={url}
+                          alt={`${article.title} ${i + 1}`}
+                          loading="eager"
+                          onError={() => {
+                            console.error('Gallery image failed to load:', url);
+                            setFailedImages(p => new Set([...p, url]));
+                          }}
+                        />
+                      ) : (
+                        <div style={{ width: '100%', height: '100%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 12 }}>Image not available</div>
+                      )}
+                      {showMore && (
+                        <div className="hero-more">
+                          <span>+{heroCount - 3}</span>
+                          <span>More Photos</span>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         ) : (
           <div style={{ width: '100%', minHeight: 200, background: 'linear-gradient(135deg, #1a3d28 0%, #2d5c42 50%, #c9a84c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px)' }} />
@@ -482,21 +509,25 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
               <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{(article.views || 0).toLocaleString()} views</span>
             </div>
 
+            {/* ══ AD ══ */}
             <ArticleMiddleAd />
 
-            {article.youtubeUrl && getYouTubeVideoId(article.youtubeUrl) && (
-              <div style={{ width: '100%', position: 'relative', paddingBottom: '56.25%', height: 0, marginBottom: 20 }}>
-                <iframe
-                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(article.youtubeUrl)}?rel=0&showinfo=0`}
-                  title="YouTube video player"
-                  frameBorder="0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
-                />
+            {/* ══ YOUTUBE VIDEO — compact inset ══ */}
+            {youtubeId && (
+              <div className="youtube-outer">
+                <span className="youtube-label">▶ Watch</span>
+                <div className="youtube-wrap">
+                  <iframe
+                    src={`https://www.youtube.com/embed/${youtubeId}?rel=0&showinfo=0&modestbranding=1`}
+                    title="YouTube video player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                </div>
               </div>
             )}
 
+            {/* ══ ARTICLE BODY ══ */}
             <div ref={bodyRef} className="art-body dropcap" dangerouslySetInnerHTML={{ __html: article.content }} />
 
           </div>
