@@ -216,7 +216,7 @@ export default function AdminPage() {
             {schedulingStatus ? (
               <div>
                 <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#856404' }}>
-                  <strong>Next Generation:</strong> {new Date(schedulingStatus.nextGeneration).toLocaleString()}
+                  <strong>Next Generation:</strong> {schedulingStatus.nextGeneration ? new Date(schedulingStatus.nextGeneration).toLocaleString() : 'N/A'}
                 </p>
                 <p style={{ margin: '0 0 5px 0', fontSize: '14px', color: '#856404' }}>
                   <strong>Status:</strong> {schedulingStatus.isScheduled ? 'Active' : 'Inactive'}

@@ -1,4 +1,5 @@
 import { query, mutation } from './_generated/server';
+import { api } from './_generated/api';
 import { v } from 'convex/values';
 
 // Get the latest active AI story
@@ -44,7 +45,7 @@ export const generateNewStory = mutation({
     });
 
     // Schedule the next generation in 24 hours
-    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, "aiStories:generateNewStory", {});
+    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, api.aiStories.generateNewStory, {});
 
     return newStoryId;
   },
@@ -181,7 +182,7 @@ export const seedInitialStory = mutation({
     });
 
     // Schedule the next generation in 24 hours
-    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, "aiStories:generateNewStory", {});
+    await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, api.aiStories.generateNewStory, {});
 
     return storyId;
   },
