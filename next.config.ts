@@ -13,11 +13,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "clear-herring-860.convex.cloud",
+        hostname: "**.convex.cloud",
       },
       {
         protocol: "https",
-        hostname: "clear-herring-860.convex.cloud",
+        hostname: "**.convex.storage",
       },
     ],
     dangerouslyAllowSVG: true,
