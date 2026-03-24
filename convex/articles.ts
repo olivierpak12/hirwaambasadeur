@@ -520,15 +520,22 @@ export const updateArticle = mutation({
     // Validate categoryId if provided
     if (updates.categoryId !== undefined) {
       console.log('Validating categoryId:', updates.categoryId);
-      if (typeof updates.categoryId === 'string' && updates.categoryId.trim() === '') {
-        // Empty string means no category selected, remove it
-        updates.categoryId = undefined;
+      if (updates.categoryId === null || updates.categoryId === '') {
+        // Empty/null means no category selected, but categoryId is required in schema
+        // We'll keep the existing categoryId instead of updating it
+        delete updates.categoryId;
       } else {
-        const category = await ctx.db.get(updates.categoryId as any) as any;
-        if (!category) {
-          throw new Error(`Category with ID ${updates.categoryId} not found`);
+        // Validate that the category exists
+        try {
+          const category = await ctx.db.get(updates.categoryId);
+          if (!category) {
+            throw new Error(`Category with ID ${updates.categoryId} not found`);
+          }
+          console.log('Category found:', category.name);
+        } catch (error) {
+          console.error('Error validating categoryId:', error);
+          throw new Error(`Invalid category ID: ${updates.categoryId}`);
         }
-        console.log('Category found:', category.name);
       }
     }
 
