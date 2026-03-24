@@ -73,6 +73,8 @@ export default function FeaturedArticles() {
 
   const featured = articles[0];
   const recentArticles = articles.slice(1, 5);
+  console.log({featured});
+  
 
   return (
     <section className="bg-white">

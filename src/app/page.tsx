@@ -3,59 +3,121 @@ import dynamic from 'next/dynamic';
 import FeaturedArticles from '@/components/home/FeaturedArticles';
 import LatestNews from '@/components/home/LatestNews';
 import TrendingArticles from '@/components/home/TrendingArticles';
-// Lazy load below-the-fold components
+
 const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
 const JobsSection = dynamic(() => import('@/components/home/JobsSection'));
 
 export default function Home() {
   const LoadingFallback = () => (
-    <div className="min-h-[400px] flex items-center justify-center">
-      <div className="animate-pulse text-gray-400">Loading...</div>
+    <div style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ color: '#999', fontSize: '14px' }}>Loading...</div>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-white">
+    <div style={{ minHeight: '100vh', backgroundColor: '#f2f2f2', fontFamily: "Helvetica Neue, Helvetica, Arial, sans-serif" }}>
       <Suspense fallback={
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#bb1919]"></div>
+        <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{
+            width: '40px', height: '40px',
+            border: '3px solid #f0f0f0',
+            borderTop: '3px solid #bb1919',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+          }} />
         </div>
       }>
-        {/* Breaking News Banner */}
-        <div className="bg-[#bb1919] text-white border-t border-white/30">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center gap-3 py-1.5">
-              <span className="bg-white text-[#bb1919] text-[11px] font-bold px-1.5 py-0.5 uppercase tracking-wide shrink-0">
-                Breaking
-              </span>
-              <span className="text-sm">Latest updates from Africa and beyond</span>
-            </div>
-          </div>
-        </div>
 
+        <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '0 16px' }}>
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          {/* Main featured + sidebar */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 border-t-2 border-[#bb1919]">
-            <div className="lg:col-span-2 pr-0 lg:pr-5 border-r-0 lg:border-r border-gray-200">
-              <FeaturedArticles />
+          {/* ── Main grid: hero + sidebar ── */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: '1fr',
+            gap: '0',
+            paddingTop: '16px',
+          }}
+            className="home-grid"
+          >
+            {/* LEFT: hero + secondary stories */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0' }}>
+
+              {/* Hero featured articles */}
+              <div style={{
+                backgroundColor: 'white',
+                borderBottom: '4px solid #bb1919',
+              }}>
+                <FeaturedArticles />
+              </div>
+
+              {/* Latest news row — 3 columns */}
+              <div style={{ marginTop: '16px' }}>
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  paddingBottom: '8px',
+                  borderBottom: '2px solid #bb1919',
+                  marginBottom: '12px',
+                }}>
+                  <span style={{
+                    fontSize: '14px',
+                    fontWeight: '700',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
+                    color: '#1a1a1a',
+                  }}>Latest News</span>
+                </div>
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+                  gap: '1px',
+                  backgroundColor: '#ddd',
+                }}>
+                  <LatestNews />
+                </div>
+              </div>
+
+              {/* Ad strip */}
+              <div style={{
+                margin: '20px 0',
+                border: '1px dashed #ccc',
+                backgroundColor: '#fafafa',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '48px',
+              }}>
+                <span style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
+                  Advertisement
+                </span>
+              </div>
+
             </div>
-            <div className="pl-0 lg:pl-5 mt-4 lg:mt-0">
-              <p className="text-[11px] font-bold uppercase tracking-wide text-gray-500 mb-2 pb-2 border-b border-gray-200">
-                More Top Stories
-              </p>
+
+            {/* RIGHT sidebar: trending */}
+            <div className="home-sidebar" style={{
+              borderLeft: '1px solid #ddd',
+              paddingLeft: '16px',
+            }}>
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px',
+                paddingBottom: '8px',
+                borderBottom: '2px solid #bb1919',
+                marginBottom: '12px',
+              }}>
+                <span style={{
+                  fontSize: '13px',
+                  fontWeight: '700',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.06em',
+                  color: '#1a1a1a',
+                }}>More Top Stories</span>
+              </div>
               <TrendingArticles />
             </div>
-          </div>
-
-          {/* 3-column latest news row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-0 border-t-2 border-[#bb1919] mt-5">
-            <LatestNews />
-          </div>
-
-          {/* Advertisement */}
-          <div className="my-4 border border-dashed border-gray-300 bg-gray-50 flex items-center justify-center h-12">
-            <span className="text-[11px] text-gray-400 uppercase tracking-widest">Advertisement</span>
           </div>
         </div>
 
@@ -65,7 +127,36 @@ export default function Home() {
         <Suspense fallback={<LoadingFallback />}>
           <Newsletter />
         </Suspense>
+
       </Suspense>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+
+        @media (min-width: 1024px) {
+          .home-grid {
+            grid-template-columns: 1fr 320px !important;
+            align-items: start;
+          }
+          .home-sidebar {
+            display: block !important;
+            position: sticky;
+            top: 140px;
+          }
+        }
+
+        @media (max-width: 1023px) {
+          .home-sidebar {
+            border-left: none !important;
+            padding-left: 0 !important;
+            border-top: 2px solid #bb1919;
+            padding-top: 16px;
+            margin-top: 16px;
+          }
+        }
+      `}</style>
     </div>
   );
 }

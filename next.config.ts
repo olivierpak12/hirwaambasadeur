@@ -15,6 +15,10 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "clear-herring-860.convex.cloud",
       },
+      {
+        protocol: "https",
+        hostname: "clear-herring-860.convex.cloud",
+      },
     ],
     dangerouslyAllowSVG: true,
     contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
