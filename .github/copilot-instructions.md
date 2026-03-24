@@ -24,6 +24,7 @@ This is a Next.js-based professional online news website built with modern techn
 10. Responsive design for mobile, tablet, desktop
 11. SEO optimized with meta tags and structured data
 12. Newsletter subscription capability
+13. AI-generated funny stories (daily, multilingual: English/Kinyarwanda/French)
 
 ### Key Pages Created
 - `/` - Homepage with featured content
@@ -34,6 +35,7 @@ This is a Next.js-based professional online news website built with modern techn
 - `/submit` - Article submission form
 - `/contact` - Reader contact form
 - `/dashboard/admin` - Admin management panel
+- `/admin` - Admin dashboard with AI story management
 
 ### Development Commands
 - `npm run dev` - Start Next.js development server (port 3000)
@@ -68,8 +70,20 @@ Tables created:
 - `submissions` - User-submitted articles for review
 - `contacts` - Reader messages
 - `advertisements` - Ad placements and content
+- `aiStories` - AI-generated funny stories in multiple languages
 
-### Important Notes
+### AI Stories Feature
+The website includes an AI-powered funny story generator that creates daily multilingual content:
+
+- **Languages**: English, Kinyarwanda, and French
+- **Generation**: Manual via admin panel or automated via API
+- **Display**: Featured in homepage sidebar with language switching
+- **Management**: Admin interface at `/admin` for story generation and history
+
+To enable automatic 24-hour generation:
+1. Set `AI_STORY_API_KEY` environment variable
+2. Configure a cron job to call `POST /api/generate-ai-story` with the API key
+3. For AI integration, replace placeholder functions with actual OpenAI/Google Translate APIs
 - All pages use mock data for demonstration
 - Replace mock data with real Convex queries when implementing
 - Admin dashboard is accessible at `/dashboard/admin`

@@ -3,6 +3,7 @@ import dynamic from 'next/dynamic';
 import FeaturedArticles from '@/components/home/FeaturedArticles';
 import LatestNews from '@/components/home/LatestNews';
 import TrendingArticles from '@/components/home/TrendingArticles';
+import AIStory from '@/components/home/AIStory';
 
 const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
 const JobsSection = dynamic(() => import('@/components/home/JobsSection'));
@@ -117,6 +118,9 @@ export default function Home() {
                 }}>More Top Stories</span>
               </div>
               <TrendingArticles />
+
+              {/* AI Story Section */}
+              <AIStory />
             </div>
           </div>
         </div>

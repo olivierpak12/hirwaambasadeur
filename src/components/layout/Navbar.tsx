@@ -2,37 +2,40 @@
 
 import Link from 'next/link';
 import { useState, useEffect, useRef } from 'react';
+import { useQuery } from 'convex/react';
+import { api } from '@/convex/_generated/api';
 
 const PRIMARY_LINKS = [
   'Top Stories', 'World', 'Technology', 'Business',
   'Sport', 'Culture', 'Health', 'Science', 'Africa'
 ];
 
-const TICKER_ITEMS = [
-  'Historic Agreement Reached in Peace Talks',
-  'Tech Giants Launch Revolutionary AI Platform',
-  'Global Markets Rally on Positive Economic Data',
-  'Rwanda Leads Africa in Digital Transformation',
-  'Climate Summit Produces Landmark Emissions Deal',
-];
-
 export default function Navbar() {
+  const tickerTitles = useQuery(api.articles.getTickerTitles);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Top Stories');
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerVisible, setTickerVisible] = useState(true);
 
+  // Reset ticker index if titles change and index is out of bounds
+  useEffect(() => {
+    if (tickerTitles && tickerIndex >= tickerTitles.length) {
+      setTickerIndex(0);
+    }
+  }, [tickerTitles, tickerIndex]);
+
   // Rotate ticker every 4 seconds
   useEffect(() => {
+    if (!tickerTitles || tickerTitles.length === 0) return;
     const id = setInterval(() => {
       setTickerVisible(false);
       setTimeout(() => {
-        setTickerIndex((i) => (i + 1) % TICKER_ITEMS.length);
+        setTickerIndex((i) => (i + 1) % tickerTitles.length);
         setTickerVisible(true);
       }, 300);
     }, 4000);
     return () => clearInterval(id);
-  }, []);
+  }, [tickerTitles]);
 
   return (
     <header className="w-full sticky top-0 z-50" style={{ fontFamily: "'BBC Reith Sans', Helvetica, Arial, sans-serif" }}>
@@ -204,6 +207,7 @@ export default function Navbar() {
       </div>
 
       {/* ── Live ticker ── */}
+      {tickerTitles && tickerTitles.length > 0 && (
       <div style={{
         backgroundColor: '#1a1a1a',
         borderBottom: '1px solid #333',
@@ -250,13 +254,13 @@ export default function Navbar() {
               transition: 'opacity 0.3s ease',
               display: 'inline-block',
             }}>
-              {TICKER_ITEMS[tickerIndex]}
+              {tickerTitles[tickerIndex]}
             </span>
           </div>
 
           {/* Navigation dots */}
           <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-            {TICKER_ITEMS.map((_, i) => (
+            {tickerTitles.map((_, i) => (
               <button
                 key={i}
                 onClick={() => { setTickerIndex(i); setTickerVisible(true); }}
@@ -275,6 +279,7 @@ export default function Navbar() {
           </div>
         </div>
       </div>
+      )}
 
       {/* Mobile drawer */}
       {menuOpen && (

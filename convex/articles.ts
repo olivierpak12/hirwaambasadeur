@@ -380,6 +380,20 @@ export const getLatestArticles = query({
   },
 });
 
+export const getTickerTitles = query({
+  args: {},
+  returns: v.array(v.string()),
+  handler: async (ctx) => {
+    const articles = await ctx.db
+      .query('articles')
+      .filter((q) => q.eq(q.field('status'), 'published'))
+      .order('desc')
+      .take(5); // Get latest 5 articles for ticker
+    
+    return articles.map((article) => article.title);
+  },
+});
+
 export const createArticle = mutation({
   args: {
     title: v.string(),

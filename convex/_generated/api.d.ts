@@ -9,6 +9,7 @@
  */
 
 import type * as ads from "../ads.js";
+import type * as aiStories from "../aiStories.js";
 import type * as articles from "../articles.js";
 import type * as auth from "../auth.js";
 import type * as authorAuth from "../authorAuth.js";
@@ -31,6 +32,7 @@ import type {
 
 declare const fullApi: ApiFromModules<{
   ads: typeof ads;
+  aiStories: typeof aiStories;
   articles: typeof articles;
   auth: typeof auth;
   authorAuth: typeof authorAuth;

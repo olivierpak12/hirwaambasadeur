@@ -178,4 +178,13 @@ export default defineSchema({
     appliedAt: v.string(),
     reviewedAt: v.optional(v.string()),
   }).index('by_job', ['jobId']).index('by_status', ['status']),
+
+  // AI Generated Funny Stories
+  aiStories: defineTable({
+    englishText: v.string(),
+    kinyarwandaText: v.string(),
+    frenchText: v.string(),
+    generatedAt: v.string(),
+    isActive: v.boolean(),
+  }).index('by_active', ['isActive']),
 });
