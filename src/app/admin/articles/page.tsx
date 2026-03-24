@@ -60,15 +60,15 @@ export default function ArticlesAdminPage() {
 
   const startEditingArticle = (article: any) => {
     setEditingId(article._id);
-    setEditTitle(article.title);
-    setEditSlug(article.slug);
-    setEditExcerpt(article.excerpt);
-    setEditContent(article.content);
+    setEditTitle(article.title || '');
+    setEditSlug(article.slug || '');
+    setEditExcerpt(article.excerpt || '');
+    setEditContent(article.content || '');
     setEditFeaturedImageUrl(article.featuredImage || '');
     setEditYoutubeUrl(article.youtubeUrl || '');
-    setEditCategory(article.categoryId);
-    setEditAuthor(article.authorId);
-    setEditStatus(article.status);
+    setEditCategory(article.categoryId || '');
+    setEditAuthor(article.authorId || '');
+    setEditStatus(article.status || 'published');
     setEditTags((article.tags || []).join(', '));
     setError('');
     setSavedMessage('');
@@ -87,7 +87,7 @@ export default function ArticlesAdminPage() {
 
     try {
       const updateData: any = {
-        articleId: editingId,
+        articleId: editingId as any,
         title: editTitle.trim(),
         slug: (editSlug || editTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')).trim(),
         excerpt: editExcerpt.trim(),
@@ -99,13 +99,13 @@ export default function ArticlesAdminPage() {
       };
 
       // Only include categoryId if it's not empty
-      if (editCategory && editCategory.trim()) {
-        updateData.categoryId = editCategory.trim();
+      if (editCategory && typeof editCategory === 'string' && editCategory.trim()) {
+        updateData.categoryId = editCategory.trim() as any;
       }
 
       // Only include authorId if it's not empty
-      if (editAuthor && editAuthor.trim()) {
-        updateData.authorId = editAuthor.trim();
+      if (editAuthor && typeof editAuthor === 'string' && editAuthor.trim()) {
+        updateData.authorId = editAuthor.trim() as any;
       }
 
       console.log('Sending update data:', JSON.stringify(updateData, null, 2));
