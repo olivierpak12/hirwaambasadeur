@@ -487,7 +487,7 @@ export const updateArticle = mutation({
     content: v.optional(v.string()),
     featuredImage: v.optional(v.string()),
     featuredImageIds: v.optional(v.array(v.id('_storage'))),
-    categoryId: v.optional(v.id('categories')),
+    categoryId: v.optional(v.union(v.id('categories'), v.string())),
     tags: v.optional(v.array(v.string())),
     featured: v.optional(v.boolean()),
     youtubeUrl: v.optional(v.string()),
