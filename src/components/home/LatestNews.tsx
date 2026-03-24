@@ -1,9 +1,6 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery } from 'convex/react';
+import { fetchQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
 
 interface Article {
@@ -25,17 +22,12 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export default function LatestNews() {
-  const articles = useQuery(api.articles.getPublishedArticles);
-  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set());
+export default async function LatestNews() {
+  const articles = await fetchQuery(api.articles.getPublishedArticles);
 
   if (!articles || articles.length <= 5) return null;
 
   const latestArticles = articles.slice(5, 11); // Skip featured articles
-
-  const handleImageError = (id: string) => {
-    setFailedImageIds((prev) => new Set(prev).add(id));
-  };
 
   return (
     <section className="py-12 bg-white">
@@ -55,12 +47,11 @@ export default function LatestNews() {
             <article key={article._id} className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
               <Link href={`/article/${article.slug}`}>
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  {article.featuredImage && !failedImageIds.has(article._id) ? (
+                  {article.featuredImage ? (
                     <Image
                       src={article.featuredImage}
                       alt={article.title}
                       fill
-                      onError={() => handleImageError(article._id)}
                       className="object-cover transition-transform hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                     />

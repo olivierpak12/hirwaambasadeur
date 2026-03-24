@@ -1,9 +1,6 @@
-'use client';
-
-import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useQuery } from 'convex/react';
+import { fetchQuery } from 'convex/nextjs';
 import { api } from '@/convex/_generated/api';
 
 interface Article {
@@ -62,13 +59,8 @@ function PlaceholderImg({ height, index }: { height: number; index: number }) {
   );
 }
 
-export default function FeaturedArticles() {
-  const articles = useQuery(api.articles.getPublishedArticles);
-  const [failedImageIds, setFailedImageIds] = useState<Set<string>>(new Set());
-
-  const handleImageError = (id: string) => {
-    setFailedImageIds((prev) => new Set(prev).add(id));
-  };
+export default async function FeaturedArticles() {
+  const articles = await fetchQuery(api.articles.getPublishedArticles);
 
   if (!articles || articles.length === 0) {
     return (
@@ -90,58 +82,9 @@ export default function FeaturedArticles() {
 
   const featured = articles[0];
   const recentArticles = articles.slice(1, 5);
-  console.log({featured});
-  
 
   return (
     <>
-      <style jsx>{`
-        /* ══ YOUTUBE VIDEO ══ */
-        .youtube-outer {
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          margin: 1.8em 0;
-        }
-        .youtube-label {
-          font-family: 'DM Sans', sans-serif;
-          font-size: 9px;
-          font-weight: 700;
-          letter-spacing: 0.13em;
-          text-transform: uppercase;
-          color: #aaa;
-          margin-bottom: 8px;
-          align-self: flex-start;
-          margin-left: calc(6%);
-        }
-        .youtube-wrap {
-          position: relative;
-          width: 88%;
-          max-width: 500px;
-          border-radius: 8px;
-          overflow: hidden;
-          background: #000;
-          box-shadow: 0 4px 18px rgba(0,0,0,0.13);
-          transition: box-shadow 0.3s ease, transform 0.3s ease;
-        }
-        .youtube-wrap::before {
-          content: '';
-          display: block;
-          padding-bottom: 56.25%;
-        }
-        .youtube-wrap:hover {
-          box-shadow: 0 8px 26px rgba(0,0,0,0.2);
-          transform: translateY(-2px);
-        }
-        .youtube-wrap iframe {
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          border: none;
-        }
-      `}</style>
       <section className="bg-white">
       {/* Featured Article - BBC Style */}
       <div className="border-b border-gray-200 pb-8 mb-8">
@@ -149,11 +92,10 @@ export default function FeaturedArticles() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Feature image always on top */}
             <div className="relative aspect-[4/3] lg:aspect-[3/4] overflow-hidden">
-              {featured.featuredImage && !failedImageIds.has(featured._id) ? (
+              {featured.featuredImage ? (
                 <Image
                   src={featured.featuredImage}
                   alt={featured.title}
-                  onError={() => handleImageError(featured._id)}
                   fill
                   className="object-cover transition-transform group-hover:scale-105"
                   sizes="(max-width: 768px) 100vw, 50vw"
@@ -200,14 +142,37 @@ export default function FeaturedArticles() {
         </Link>
 
         {featured.youtubeUrl && getYouTubeVideoId(featured.youtubeUrl) && (
-          <div className="youtube-outer">
-            <span className="youtube-label">▶ Watch</span>
-            <div className="youtube-wrap">
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '1.8em 0' }}>
+            <span style={{
+              fontFamily: 'DM Sans, sans-serif',
+              fontSize: '9px',
+              fontWeight: 700,
+              letterSpacing: '0.13em',
+              textTransform: 'uppercase',
+              color: '#aaa',
+              marginBottom: '8px',
+              alignSelf: 'flex-start',
+              marginLeft: '6%',
+            }}>
+              ▶ Watch
+            </span>
+            <div style={{
+              position: 'relative',
+              width: '88%',
+              maxWidth: '500px',
+              borderRadius: '8px',
+              overflow: 'hidden',
+              background: '#000',
+              boxShadow: '0 4px 18px rgba(0,0,0,0.13)',
+              transition: 'box-shadow 0.3s ease, transform 0.3s ease',
+            }}>
+              <div style={{ paddingTop: '56.25%' }} />
               <iframe
                 src={`https://www.youtube.com/embed/${getYouTubeVideoId(featured.youtubeUrl)}?rel=0&showinfo=0&modestbranding=1`}
                 title="Featured video"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 allowFullScreen
+                style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 'none' }}
               />
             </div>
           </div>
@@ -222,11 +187,10 @@ export default function FeaturedArticles() {
             <Link key={article._id} href={`/article/${article.slug}`} className="group block">
               <div className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
                 <div className="relative aspect-[16/9] overflow-hidden">
-                  {article.featuredImage && !failedImageIds.has(article._id) ? (
+                  {article.featuredImage ? (
                     <Image
                       src={article.featuredImage}
                       alt={article.title}
-                      onError={() => handleImageError(article._id)}
                       fill
                       className="object-cover transition-transform group-hover:scale-105"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

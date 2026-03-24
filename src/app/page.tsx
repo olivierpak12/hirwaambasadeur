@@ -9,6 +9,8 @@ import { HeaderAd } from '@/components/common/AdPlacements';
 const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
 const JobsSection = dynamic(() => import('@/components/home/JobsSection'));
 
+export const revalidate = 60;
+
 export default function Home() {
   const LoadingFallback = () => (
     <div style={{ minHeight: '400px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import Script from 'next/script';
 import './globals.css';
 import Navbar from '@/components/layout/Navbar';
 import Footer from '@/components/layout/Footer';
@@ -52,9 +53,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Google AdSense — Defer loading to improve FCP */}
         {publisherId && (
-          <script
-            async
+          <Script
             src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`}
+            strategy="afterInteractive"
             crossOrigin="anonymous"
           />
         )}
