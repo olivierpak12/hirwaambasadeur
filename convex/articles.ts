@@ -384,22 +384,28 @@ export const getTickerTitles = query({
   args: {},
   returns: v.array(v.string()),
   handler: async (ctx) => {
-    const articles = await ctx.db
-      .query('articles')
-      .filter((q) => q.eq(q.field('status'), 'published'))
-      .order('desc')
-      .take(5); // Get latest 5 articles for ticker
+    try {
+      const articles = await ctx.db
+        .query('articles')
+        .filter((q) => q.eq(q.field('status'), 'published'))
+        .order('desc')
+        .take(5); // Get latest 5 articles for ticker
 
-    const titles = articles
-      .filter((article) => typeof article.title === 'string' && article.title.trim().length > 0)
-      .map((article) => article.title.trim());
+      const titles = articles
+        .filter((article) => article && typeof article.title === 'string' && article.title.trim().length > 0)
+        .map((article) => article.title.trim());
 
-    // Guard for missing data (older entries or malformed records)
-    if (titles.length === 0) {
-      return ['No headlines available'];
+      // Guard for missing data (older entries or malformed records)
+      if (titles.length === 0) {
+        return ['No headlines available'];
+      }
+
+      return titles;
+    } catch (error) {
+      console.error('Error in getTickerTitles:', error);
+      // Return fallback on any error
+      return ['Headlines temporarily unavailable'];
     }
-
-    return titles;
   },
 });
 
