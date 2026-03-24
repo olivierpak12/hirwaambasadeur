@@ -164,9 +164,27 @@ export default function GoogleAdSense({
     };
   }, [publisherId, slot]);
 
-  // Don't render if no publisher ID or slot configured
+  // If AdSense is not configured, render a non-empty placeholder so editor/admin can notice
   if (!publisherId || !slot) {
-    return null;
+    return (
+      <div
+        className={`google-adsense-container ${className}`}
+        style={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: format === 'horizontal' ? '90px' : format === 'vertical' ? '250px' : '150px',
+          background: 'rgba(255,255,255,0.04)',
+          border: '1px dashed rgba(201,168,76,0.2)',
+          color: '#5a8a6a',
+          ...style,
+        }}
+      >
+        <span style={{ fontSize: 11, textAlign: 'center' }}>
+          Advertisement placeholder — configure NEXT_PUBLIC_GOOGLE_ADSENSE_ID and ad unit slots.
+        </span>
+      </div>
+    );
   }
 
   return (
