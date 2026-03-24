@@ -53,10 +53,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         
         {/* Google AdSense — Defer loading to improve FCP */}
         {publisherId && (
-          <Script
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`}
-            strategy="afterInteractive"
+          <script
+            async
             crossOrigin="anonymous"
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${publisherId}`}
           />
         )}
       </head>
