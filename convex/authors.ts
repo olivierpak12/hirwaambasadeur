@@ -39,7 +39,7 @@ export const seedAuthors = mutation({
     if (existing.length > 0) return; // Already seeded
 
     const authors = [
-      { name: 'Admin', email: 'admin@hirwaambassadeur.com', bio: 'Administrator and editor' },
+      { name: 'Hirwa Ambassadeur', email: 'admin@hirwaambassadeur.com', bio: 'Administrator and editor' },
     ];
 
     for (const author of authors) {

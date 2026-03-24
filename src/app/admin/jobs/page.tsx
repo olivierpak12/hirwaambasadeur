@@ -63,7 +63,7 @@ export default function JobsAdminPage() {
     }
 
     setIsAuthenticated(true);
-    setAdminName(name || 'Admin');
+    setAdminName(name || 'Hirwa Ambassadeur');
   }, [router]);
 
   const addRequirement = () => {

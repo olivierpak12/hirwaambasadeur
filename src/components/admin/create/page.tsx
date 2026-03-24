@@ -130,7 +130,7 @@ export default function CreateArticlePage() {
       let authorId = authors?.[0]?._id;
       if (!authorId) {
         authorId = await createAuthor({
-          name: 'Admin',
+          name: 'Hirwa Ambassadeur',
           email: 'admin@hirwaambassadeur.com',
           bio: 'Administrator',
         });

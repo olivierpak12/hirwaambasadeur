@@ -96,7 +96,7 @@ export default function CreateArticlePage() {
     }
 
     setIsAuthenticated(true);
-    setAdminName(name || 'Admin');
+    setAdminName(name || 'Hirwa Ambassadeur');
   }, [router]);
 
   // Auto-seed categories if none exist
@@ -174,7 +174,7 @@ export default function CreateArticlePage() {
       if (!authorId) {
         // Create a default author if none exist
         authorId = await createAuthor({
-          name: 'Admin',
+          name: 'Hirwa Ambassadeur',
           email: 'admin@hirwaambassadeur.com',
           bio: 'Administrator',
           canCreateArticles: true,

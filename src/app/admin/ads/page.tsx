@@ -60,7 +60,7 @@ export default function AdsAdminPage() {
     }
 
     setIsAuthenticated(true);
-    setAdminName(name || 'Admin');
+    setAdminName(name || 'Hirwa Ambassadeur');
   }, [router]);
 
   const handleCreateAd = async () => {

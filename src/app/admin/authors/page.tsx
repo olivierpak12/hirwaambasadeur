@@ -61,7 +61,7 @@ export default function AuthorsAdminPage() {
     }
 
     setIsAuthenticated(true);
-    setAdminName(adminName || 'Admin');
+    setAdminName(adminName || 'Hirwa Ambassadeur');
   }, [router]);
 
   const handleCreateAuthor = async () => {

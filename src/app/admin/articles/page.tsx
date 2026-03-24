@@ -53,7 +53,7 @@ export default function ArticlesAdminPage() {
     }
 
     setIsAuthenticated(true);
-    setAdminName(adminName || 'Admin');
+    setAdminName(adminName || 'Hirwa Ambassadeur');
   }, [router]);
 
   const startEditingArticle = (article: any) => {

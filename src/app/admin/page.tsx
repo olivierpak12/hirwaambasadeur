@@ -22,7 +22,7 @@ export default function AdminPage() {
       return;
     }
 
-    setAdminName(name || 'Admin');
+    setAdminName(name || 'Hirwa Ambassadeur');
     setIsLoading(false);
   }, []);
 
