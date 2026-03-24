@@ -7,11 +7,12 @@ import { api } from '@/convex/_generated/api';
 
 export default function AuthorPage() {
   const params = useParams();
-  const authorName = decodeURIComponent(params.id as string);
+  const authorId = params.id as string;
 
-  const authorData = useQuery(api.articles.getAuthorByName, { authorName });
+  const author = useQuery(api.authors.getAuthorById, { authorId: authorId as any });
+  const authorArticles = useQuery(api.articles.getAuthorArticles, { authorId: authorId as any });
 
-  if (!authorData) {
+  if (!author) {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
@@ -21,8 +22,7 @@ export default function AuthorPage() {
     );
   }
 
-  const { ...author } = authorData;
-  const authorArticles = authorData.articles || [];
+  const articles = authorArticles || [];
 
   return (
     <div className="container mx-auto px-4 py-12">
@@ -59,7 +59,7 @@ export default function AuthorPage() {
               {/* Stats */}
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-100 p-4 rounded-lg">
                 <div className="text-center">
-                  <p className="text-2xl font-bold text-gray-800">{authorArticles.length}</p>
+                  <p className="text-2xl font-bold text-gray-800">{articles.length}</p>
                   <p className="text-sm text-black">Articles Published</p>
                 </div>
                 <div className="text-center">
@@ -81,7 +81,7 @@ export default function AuthorPage() {
         <h2 className="text-3xl font-bold mb-8 text-black">Articles by {author.name}</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {authorArticles.map((article) => (
+          {articles.map((article) => (
             <Link key={article._id} href={`/article/${article.slug}`}>
               <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer h-full flex flex-col">
                 {article.featuredImage && (
