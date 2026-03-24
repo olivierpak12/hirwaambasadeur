@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
+import { HeaderAd } from './AdPlacements';
 
 export default function Header() {
  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,12 +22,10 @@ export default function Header() {
  }, []);
 
  return (
- <header className="bg-whit e text-black sticky top-0 z-50 shadow-lg">
- <div className="bg-gra y-100 px-4 py-2 text-center text-xs text-gray-600">
- Advertisement Space - Google AdSense Banner
- </div>
+ <header className="bg-white text-black sticky top-0 z-50 shadow-lg">
+   <HeaderAd />
 
- <div className="containe r mx-auto px-4 py-4">
+ <div className="container mx-auto px-4 py-4">
  <div className="fle x items-center justify-between">
  <Link href = "/" className="fle x items-center gap-2">
  <div className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center font-bold text-lg text-white">

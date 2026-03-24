@@ -114,6 +114,7 @@ export default function CreateArticlePage() {
   const [content, setContent]                 = useState('');
   const [category, setCategory]               = useState('');
   const [author, setAuthor]                   = useState('');
+  const [youtubeUrl, setYoutubeUrl]           = useState('');
   const [tags, setTags]                       = useState<string[]>([]);
   const [tagInput, setTagInput]               = useState('');
   const [featuredImages, setFeaturedImages] = useState<Array<{ storageId: string; caption: string }>>([]);
@@ -188,6 +189,7 @@ export default function CreateArticlePage() {
         content,
         excerpt,
         featuredImage: featuredImageUrl || undefined, // Direct URL takes priority
+        youtubeUrl: youtubeUrl?.trim() || undefined,
         featuredImageIds: featuredImages.length > 0 ? featuredImages.map(img => img.storageId as any) : undefined,
         images: images.length > 0 ? images.map(img => ({
           storageId: img.storageId as any,
@@ -209,6 +211,7 @@ export default function CreateArticlePage() {
       setContent('');
       setCategory('');
       setAuthor('');
+      setYoutubeUrl('');
       setTags([]);
       setTagInput('');
       setFeaturedImages([]);
@@ -917,6 +920,34 @@ export default function CreateArticlePage() {
                   <div style={{ fontSize: 10, color: '#5a8a6a', marginTop: 6 }}>
                     💡 Direct URLs work best in production. Try: https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800
                   </div>
+                </div>
+
+                {/* YouTube URL field */}
+                <div>
+                  <label style={{ fontSize: 11, color: '#a0b8a8', fontWeight: 600, display: 'block', marginBottom: 6 }}>
+                    Optional YouTube video URL (embedded in article)
+                  </label>
+                  <input
+                    type="url"
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value={youtubeUrl}
+                    onChange={(e) => setYoutubeUrl(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '10px 12px',
+                      fontSize: 12,
+                      background: 'rgba(255,255,255,0.03)',
+                      border: '1px solid rgba(201,168,76,0.12)',
+                      borderRadius: 3,
+                      color: '#e8dfc8',
+                      fontFamily: 'inherit',
+                      outline: 'none',
+                      transition: 'border-color 0.2s',
+                      boxSizing: 'border-box',
+                    }}
+                    onFocus={(e) => e.target.style.borderColor = 'rgba(201,168,76,0.4)'}
+                    onBlur={(e) => e.target.style.borderColor = 'rgba(201,168,76,0.12)'}
+                  />
                 </div>
 
                 {/* OR divider */}

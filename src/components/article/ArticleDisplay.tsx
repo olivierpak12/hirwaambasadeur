@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import { ArticleMiddleAd } from '@/components/common/AdPlacements';
 
 interface LightboxEntry { url: string; caption?: string; }
 
@@ -24,8 +25,25 @@ interface ArticleDisplayProps {
     views?: number;
     commentCount?: number;
     likeCount?: number;
+    youtubeUrl?: string;
   };
   relatedArticles?: any[];
+}
+
+function getYouTubeVideoId(url?: string) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtu.be')) {
+      return parsed.pathname.slice(1);
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      return parsed.searchParams.get('v');
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 export default function ArticleDisplay({ article, relatedArticles = [] }: ArticleDisplayProps) {
@@ -361,32 +379,33 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
         {/* ══ FEATURED IMAGE HERO ══ */}
         {featuredImages.length > 0 ? (
-          <div className="hero-wrap" style={{ position: 'relative' }}>
-            {heroCount === 1 && (
-              <div className="hero-single" onClick={() => openLb(featuredImages[0], article.title)}>
-                <img 
-                  src={featuredImages[0]} 
-                  alt={article.title}
-                  loading="eager"
-                  onError={(e) => {
-                    console.error('Featured image failed to load:', featuredImages[0]);
-                    setFailedImages(p => new Set([...p, featuredImages[0]]));
-                  }}
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-                <div className="hero-expand-hint">⤢ View full</div>
-              </div>
-            )}
+          <>
+            <div className="hero-wrap" style={{ position: 'relative' }}>
+              {heroCount === 1 && (
+                <div className="hero-single" onClick={() => openLb(featuredImages[0], article.title)}>
+                  <img
+                    src={featuredImages[0]}
+                    alt={article.title}
+                    loading="eager"
+                    onError={() => {
+                      console.error('Featured image failed to load:', featuredImages[0]);
+                      setFailedImages(p => new Set([...p, featuredImages[0]]));
+                    }}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                  <div className="hero-expand-hint">⤢ View full</div>
+                </div>
+              )}
 
-            {heroCount >= 2 && (
-              <div className={`hero-multi c${Math.min(heroCount, 4)}`}>
-                {featuredImages.slice(0, 4).map((url, i) => {
-                  const showMore = i === 3 && heroCount > 4;
-                  return (
-                    <div key={i} className="hmi" onClick={() => openLb(url, `${article.title} — ${i + 1}`)}>
-                      {!failedImages.has(url)
-                        ? <img 
-                            src={url} 
+              {heroCount >= 2 && (
+                <div className={`hero-multi c${Math.min(heroCount, 4)}`}>
+                  {featuredImages.slice(0, 4).map((url, i) => {
+                    const showMore = i === 3 && heroCount > 4;
+                    return (
+                      <div key={i} className="hmi" onClick={() => openLb(url, `${article.title} — ${i + 1}`)}>
+                        {!failedImages.has(url) ? (
+                          <img
+                            src={url}
                             alt={`${article.title} ${i + 1}`}
                             loading="eager"
                             onError={() => {
@@ -394,20 +413,36 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
                               setFailedImages(p => new Set([...p, url]));
                             }}
                           />
-                        : <div style={{ width: '100%', height: '100%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 12 }}>Image not available</div>
-                      }
-                      {showMore && (
-                        <div className="hero-more">
-                          <span>+{heroCount - 3}</span>
-                          <span>More Photos</span>
-                        </div>
-                      )}
-                    </div>
-                  );
-                })}
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 12 }}>Image not available</div>
+                        )}
+
+                        {showMore && (
+                          <div className="hero-more">
+                            <span>+{heroCount - 3}</span>
+                            <span>More Photos</span>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {article.youtubeUrl && getYouTubeVideoId(article.youtubeUrl) && (
+              <div style={{ width: '100%', maxWidth: 940, margin: '20px auto', position: 'relative', paddingBottom: '56.25%', height: 0 }}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(article.youtubeUrl)}?rel=0&showinfo=0`}
+                  title="Article video"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', border: 0 }}
+                />
               </div>
             )}
-          </div>
+          </>
         ) : (
           <div style={{ width: '100%', minHeight: 200, background: 'linear-gradient(135deg, #1a3d28 0%, #2d5c42 50%, #c9a84c 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: 14, position: 'relative', overflow: 'hidden' }}>
             <div style={{ position: 'absolute', inset: 0, background: 'repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.03) 10px, rgba(255,255,255,0.03) 20px)' }} />
@@ -447,7 +482,20 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
               <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{(article.views || 0).toLocaleString()} views</span>
             </div>
 
-            <div className="art-ad"><p>Advertisement</p></div>
+            <ArticleMiddleAd />
+
+            {article.youtubeUrl && getYouTubeVideoId(article.youtubeUrl) && (
+              <div style={{ width: '100%', position: 'relative', paddingBottom: '56.25%', height: 0, marginBottom: 20 }}>
+                <iframe
+                  src={`https://www.youtube.com/embed/${getYouTubeVideoId(article.youtubeUrl)}?rel=0&showinfo=0`}
+                  title="YouTube video player"
+                  frameBorder="0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' }}
+                />
+              </div>
+            )}
 
             <div ref={bodyRef} className="art-body dropcap" dangerouslySetInnerHTML={{ __html: article.content }} />
 
@@ -474,7 +522,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
           )}
 
           <div className="art-inner" style={{ paddingTop: 0 }}>
-            <div className="art-ad" style={{ marginTop: 8 }}><p>Advertisement</p></div>
+            <ArticleMiddleAd />
 
             {/* Author bio */}
             {article.author?.bio && (

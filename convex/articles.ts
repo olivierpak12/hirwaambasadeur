@@ -436,6 +436,7 @@ export const createArticle = mutation({
     ),
     tags: v.optional(v.array(v.string())),
     featured: v.boolean(),
+    youtubeUrl: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     const now = new Date().toISOString();
@@ -452,6 +453,7 @@ export const createArticle = mutation({
       publishedAt: args.status === 'published' ? now : undefined,
       updatedAt: now,
       views: 0,
+      youtubeUrl: args.youtubeUrl?.trim() || undefined,
     });
   },
 });
@@ -488,6 +490,7 @@ export const updateArticle = mutation({
     categoryId: v.optional(v.id('categories')),
     tags: v.optional(v.array(v.string())),
     featured: v.optional(v.boolean()),
+    youtubeUrl: v.optional(v.string()),
     status: v.optional(v.union(v.literal('draft'), v.literal('published'), v.literal('archived'))),
   },
   handler: async (ctx, args) => {

@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import ArticleDisplay from '@/components/article/ArticleDisplay';
+import { SidebarAd, ArticleMiddleAd } from '@/components/common/AdPlacements';
 
 export default function ArticlePage() {
   const params = useParams();
@@ -691,11 +692,7 @@ export default function ArticlePage() {
                 {/* Ad slot */}
                 <div className="ap-sidebar-widget">
                   <div className="ap-widget-head">Advertisement</div>
-                  <div className="ap-ad-slot">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#c9b080" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 9h6M9 12h6M9 15h4"/></svg>
-                    <span className="ap-ad-label">Google AdSense</span>
-                    <span style={{ fontSize: 9, color: '#c0b090', letterSpacing: '0.06em' }}>300 × 250</span>
-                  </div>
+                  <SidebarAd />
                 </div>
 
                 {/* Trending widget (placeholder — swap with real data) */}
@@ -714,10 +711,7 @@ export default function ArticlePage() {
                 {/* Second ad slot */}
                 <div className="ap-sidebar-widget">
                   <div className="ap-widget-head">Advertisement</div>
-                  <div className="ap-ad-slot" style={{ minHeight: 200 }}>
-                    <span className="ap-ad-label">Google AdSense</span>
-                    <span style={{ fontSize: 9, color: '#c0b090', letterSpacing: '0.06em' }}>300 × 200</span>
-                  </div>
+                  <SidebarAd />
                 </div>
 
               </div>

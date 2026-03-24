@@ -1,12 +1,10 @@
 import Link from 'next/link';
+import { FooterAd } from './AdPlacements';
 
 export default function Footer() {
   return (
     <footer className="bg-gray-950 text-gray-300">
-      {/* Advertisement Banner */}
-      <div className="bg-gray-900 py-3 px-4 text-center text-xs text-gray-500 border-b border-gray-800">
-        Advertisement Banner - Google AdSense
-      </div>
+      <FooterAd />
 
       <div className="max-w-6xl mx-auto px-4 py-10">
         {/* Top Grid */}

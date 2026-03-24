@@ -4,6 +4,7 @@ import FeaturedArticles from '@/components/home/FeaturedArticles';
 import LatestNews from '@/components/home/LatestNews';
 import TrendingArticles from '@/components/home/TrendingArticles';
 import AIStory from '@/components/home/AIStory';
+import { HeaderAd } from '@/components/common/AdPlacements';
 
 const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
 const JobsSection = dynamic(() => import('@/components/home/JobsSection'));
@@ -80,19 +81,7 @@ export default function Home() {
               </div>
 
               {/* Ad strip */}
-              <div style={{
-                margin: '20px 0',
-                border: '1px dashed #ccc',
-                backgroundColor: '#fafafa',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '48px',
-              }}>
-                <span style={{ fontSize: '10px', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.2em' }}>
-                  Advertisement
-                </span>
-              </div>
+              <HeaderAd />
 
             </div>
 

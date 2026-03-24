@@ -27,6 +27,7 @@ export default function ArticlesAdminPage() {
   const [editExcerpt, setEditExcerpt] = useState('');
   const [editContent, setEditContent] = useState('');
   const [editFeaturedImageUrl, setEditFeaturedImageUrl] = useState('');
+  const [editYoutubeUrl, setEditYoutubeUrl] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editStatus, setEditStatus] = useState<'draft' | 'published' | 'archived'>('published');
   const [editTags, setEditTags] = useState('');
@@ -62,6 +63,7 @@ export default function ArticlesAdminPage() {
     setEditExcerpt(article.excerpt);
     setEditContent(article.content);
     setEditFeaturedImageUrl(article.featuredImage || '');
+    setEditYoutubeUrl(article.youtubeUrl || '');
     setEditCategory(article.categoryId);
     setEditStatus(article.status);
     setEditTags((article.tags || []).join(', '));
@@ -88,6 +90,7 @@ export default function ArticlesAdminPage() {
         excerpt: editExcerpt.trim(),
         content: editContent.trim(),
         featuredImage: editFeaturedImageUrl.trim() || undefined,
+        youtubeUrl: editYoutubeUrl.trim() || undefined,
         status: editStatus,
         tags: editTags ? editTags.split(',').map((t: string) => t.trim()).filter(Boolean) : undefined,
       };
@@ -427,6 +430,17 @@ export default function ArticlesAdminPage() {
                 onChange={(e) => setEditFeaturedImageUrl(e.target.value)}
                 style={field}
                 placeholder="https://images.unsplash.com/..."
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <Label>YouTube Video URL</Label>
+              <input
+                type="url"
+                value={editYoutubeUrl}
+                onChange={(e) => setEditYoutubeUrl(e.target.value)}
+                style={field}
+                placeholder="https://www.youtube.com/watch?v=..."
               />
             </div>
 

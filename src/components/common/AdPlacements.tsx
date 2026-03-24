@@ -100,7 +100,7 @@ export function FooterAd() {
  * Displayed inline within article content
  */
 export function ArticleMiddleAd() {
-  const unitId = process.env.NEXT_PUBLIC_ADSENSE_ARTICLE_UNIT;
+  const unitId = process.env.NEXT_PUBLIC_ADSENSE_ARTICLE_UNIT || '2284414068';
 
   return (
     <div style={{
@@ -122,8 +122,10 @@ export function ArticleMiddleAd() {
       </p>
       <GoogleAdSense
         slot={unitId}
-        format="auto"
-        style={{ minHeight: '280px' }}
+        format="fluid"
+        layout="in-article"
+        responsive={true}
+        style={{ minHeight: '150px' }}
       />
     </div>
   );

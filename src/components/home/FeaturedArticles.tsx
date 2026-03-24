@@ -12,6 +12,7 @@ interface Article {
   excerpt: string;
   slug: string;
   featuredImage?: string;
+  youtubeUrl?: string;
   author?: { name: string };
   category?: { name: string };
   publishedAt: string;
@@ -23,6 +24,22 @@ function timeAgo(iso: string) {
   if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
   if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
   return `${Math.floor(diff / 86400)}d ago`;
+}
+
+function getYouTubeVideoId(url?: string) {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtu.be')) {
+      return parsed.pathname.slice(1);
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      return parsed.searchParams.get('v');
+    }
+    return null;
+  } catch {
+    return null;
+  }
 }
 
 function PlaceholderImg({ height, index }: { height: number; index: number }) {
@@ -82,7 +99,7 @@ export default function FeaturedArticles() {
       <div className="border-b border-gray-200 pb-8 mb-8">
         <Link href={`/article/${featured.slug}`} className="group block">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Image */}
+            {/* Feature image always on top */}
             <div className="relative aspect-[4/3] lg:aspect-[3/4] overflow-hidden">
               {featured.featuredImage && !failedImageIds.has(featured._id) ? (
                 <Image
@@ -133,6 +150,20 @@ export default function FeaturedArticles() {
             </div>
           </div>
         </Link>
+
+        {featured.youtubeUrl && getYouTubeVideoId(featured.youtubeUrl) && (
+          <div className="mt-6 flex justify-center">
+            <div className="w-full max-w-4xl aspect-video overflow-hidden rounded-lg">
+              <iframe
+                src={`https://www.youtube.com/embed/${getYouTubeVideoId(featured.youtubeUrl)}?rel=0&showinfo=0`}
+                title="Featured video"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                style={{ width: '100%', height: '100%', border: '0' }}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Secondary Articles Grid */}

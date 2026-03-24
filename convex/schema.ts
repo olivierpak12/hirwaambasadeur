@@ -48,6 +48,7 @@ export default defineSchema({
     status: v.union(v.literal('draft'), v.literal('published'), v.literal('archived')),
     tags: v.optional(v.array(v.string())),
     featured: v.boolean(),
+    youtubeUrl: v.optional(v.string()),
   }).index('by_category', ['categoryId']),
 
   // Article Comments
