@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchQuery } from 'convex/nextjs';
+import { useEffect, useState } from 'react';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 interface Article {
@@ -59,8 +62,22 @@ function PlaceholderImg({ height, index }: { height: number; index: number }) {
   );
 }
 
-export default async function FeaturedArticles() {
-  const articles = await fetchQuery(api.articles.getPublishedArticles);
+export default function FeaturedArticles() {
+  const articles = useQuery(api.articles.getPublishedArticles);
+  const [canSeeViews, setCanSeeViews] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const adminRole = window.localStorage.getItem('adminRole');
+    const loggedAuthorId = window.localStorage.getItem('authorId');
+
+    if (adminRole === 'admin' || loggedAuthorId) {
+      setCanSeeViews(true);
+    } else {
+      setCanSeeViews(false);
+    }
+  }, []);
 
   if (!articles || articles.length === 0) {
     return (
@@ -130,7 +147,7 @@ export default async function FeaturedArticles() {
                     <span>By {featured.author.name}</span>
                   </>
                 )}
-                {featured.views && (
+                {canSeeViews && featured.views && (
                   <>
                     <span>•</span>
                     <span>{featured.views.toLocaleString()} views</span>

@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import Image from 'next/image';
-import { fetchQuery } from 'convex/nextjs';
+import { useEffect, useState } from 'react';
+import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
 interface Article {
@@ -23,8 +26,22 @@ function timeAgo(iso: string) {
   return `${Math.floor(diff / 86400)}d ago`;
 }
 
-export default async function TrendingArticles() {
-  const articles = await fetchQuery(api.articles.getPublishedArticles);
+export default function TrendingArticles() {
+  const articles = useQuery(api.articles.getPublishedArticles);
+  const [canSeeViews, setCanSeeViews] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const adminRole = window.localStorage.getItem('adminRole');
+    const loggedAuthorId = window.localStorage.getItem('authorId');
+
+    if (adminRole === 'admin' || loggedAuthorId) {
+      setCanSeeViews(true);
+    } else {
+      setCanSeeViews(false);
+    }
+  }, []);
 
   if (!articles || articles.length === 0) return null;
 
@@ -76,7 +93,7 @@ export default async function TrendingArticles() {
                   {article.title}
                 </h4>
 
-                {article.views && (
+                {canSeeViews && article.views && (
                   <div className="flex items-center mt-1">
                     <svg className="w-3 h-3 text-gray-400 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
