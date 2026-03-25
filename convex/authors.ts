@@ -67,11 +67,25 @@ export const createAuthor = mutation({
   },
   handler: async (ctx, { name, email, bio, photo, photoStorageId, canCreateArticles, canEditPhotos }) => {
     const now = new Date().toISOString();
+    
+    // Resolve photo URL from storage ID if provided
+    let finalPhoto = photo || '';
+    if (photoStorageId) {
+      try {
+        const resolvedUrl = await ctx.storage.getUrl(photoStorageId);
+        if (resolvedUrl) {
+          finalPhoto = resolvedUrl;
+        }
+      } catch (err) {
+        console.error('Error resolving photo URL during creation:', err);
+      }
+    }
+    
     const authorId = await ctx.db.insert('authors', {
       name,
       email,
       bio: bio || '',
-      photo: photo || '',
+      photo: finalPhoto,
       photoStorageId,
       canCreateArticles: canCreateArticles ?? true,
       canEditPhotos: canEditPhotos ?? false,
@@ -95,11 +109,38 @@ export const updateAuthor = mutation({
     canEditPhotos: v.optional(v.boolean()),
     isActive: v.optional(v.boolean()),
   },
-  handler: async (ctx, { authorId, ...updates }) => {
-    await ctx.db.patch(authorId, {
-      ...updates,
+  handler: async (ctx, { authorId, name, email, bio, photo, photoStorageId, canCreateArticles, canEditPhotos, isActive }) => {
+    const updates: any = {
       updatedAt: new Date().toISOString(),
-    });
+    };
+    
+    if (name !== undefined) updates.name = name;
+    if (email !== undefined) updates.email = email;
+    if (bio !== undefined) updates.bio = bio;
+    if (canCreateArticles !== undefined) updates.canCreateArticles = canCreateArticles;
+    if (canEditPhotos !== undefined) updates.canEditPhotos = canEditPhotos;
+    if (isActive !== undefined) updates.isActive = isActive;
+    
+    // Handle photo updates
+    if (photoStorageId !== undefined) {
+      updates.photoStorageId = photoStorageId;
+      // Resolve photo URL from storage ID if provided
+      if (photoStorageId) {
+        try {
+          const resolvedUrl = await ctx.storage.getUrl(photoStorageId);
+          updates.photo = resolvedUrl || (photo || '');
+        } catch (err) {
+          console.error('Error resolving photo URL during update:', err);
+          updates.photo = photo || '';
+        }
+      } else {
+        updates.photo = photo || '';
+      }
+    } else if (photo !== undefined) {
+      updates.photo = photo;
+    }
+    
+    await ctx.db.patch(authorId, updates);
     return authorId;
   },
 });
