@@ -173,3 +173,30 @@ export const seedInitialStory = mutation({
     return storyId;
   },
 });
+
+// Clear all stories and generate fresh multilingual story
+export const clearAndRegenerateMutilingual = mutation({
+  args: {},
+  handler: async (ctx) => {
+    // Delete all old stories
+    const allStories = await ctx.db.query('aiStories').collect();
+    for (const story of allStories) {
+      await ctx.db.delete(story._id);
+    }
+
+    // Generate fresh multilingual story
+    const englishStory = await generateFunnyStory('english');
+    const kinyarwandaStory = await generateFunnyStory('kinyarwanda');
+    const frenchStory = await generateFunnyStory('french');
+
+    const newStoryId = await ctx.db.insert('aiStories', {
+      englishText: englishStory,
+      kinyarwandaText: kinyarwandaStory,
+      frenchText: frenchStory,
+      generatedAt: new Date().toISOString(),
+      isActive: true,
+    });
+
+    return newStoryId;
+  },
+});

@@ -10,6 +10,7 @@ export default function AdminPage() {
   const stories = useQuery(api.aiStories.getAllStories);
   const generateStory = useMutation(api.aiStories.generateNewStory);
   const seedInitialStory = useMutation(api.aiStories.seedInitialStory);
+  const clearAndRegenerate = useMutation(api.aiStories.clearAndRegenerateMutilingual);
   const schedulingStatus = useQuery(api.aiStories.getSchedulingStatus);
 
   // Check authentication
@@ -43,6 +44,19 @@ export default function AdminPage() {
       window.location.reload(); // Refresh to show the story
     } catch (error) {
       alert('Failed to seed initial story: ' + error);
+    }
+  };
+
+  const handleClearAndRegenerate = async () => {
+    if (!window.confirm('This will delete all old AI stories and generate a fresh multilingual story. Continue?')) {
+      return;
+    }
+    try {
+      await clearAndRegenerate();
+      alert('All old stories cleared. Fresh multilingual story generated!');
+      window.location.reload();
+    } catch (error) {
+      alert('Failed to clear and regenerate: ' + error);
     }
   };
 
@@ -168,6 +182,20 @@ export default function AdminPage() {
                 }}
               >
                 Seed Initial Story
+              </button>
+              <button
+                onClick={handleClearAndRegenerate}
+                style={{
+                  backgroundColor: '#ff6b6b',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px',
+                }}
+              >
+                Clear & Regenerate (Fix Translation)
               </button>
             </div>
             <p style={{ marginTop: '10px', fontSize: '14px', color: '#666' }}>
