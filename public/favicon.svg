@@ -1,0 +1,48 @@
+<svg viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#071428"/>
+      <stop offset="100%" stopColor="#0D2247"/>
+    </linearGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stopColor="#BF8B30"/>
+      <stop offset="40%" stopColor="#F5D680"/>
+      <stop offset="100%" stopColor="#C9961F"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="1.5" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Circular background -->
+  <circle cx="128" cy="128" r="125" fill="url(#bgGrad)"/>
+  
+  <!-- Outer ring border -->
+  <circle cx="128" cy="128" r="123" fill="none" stroke="url(#goldGrad)" strokeWidth="1.5"/>
+  <circle cx="128" cy="128" r="120" fill="none" stroke="url(#goldGrad)" strokeWidth="0.4" strokeOpacity="0.4"/>
+  
+  <!-- Globe icon -->
+  <circle cx="128" cy="95" r="32" fill="none" stroke="url(#goldGrad)" strokeWidth="1.2" filter="url(#glow)"/>
+  <ellipse cx="128" cy="95" rx="18" ry="32" fill="none" stroke="url(#goldGrad)" strokeWidth="1" strokeOpacity="0.85"/>
+  <line x1="97" y1="95" x2="159" y2="95" stroke="url(#goldGrad)" strokeWidth="0.8" strokeOpacity="0.7"/>
+  
+  <!-- North pole indicator -->
+  <circle cx="128" cy="63" r="3" fill="#F5D680" filter="url(#glow)"/>
+  <circle cx="128" cy="63" r="6" fill="none" stroke="#F5D680" strokeWidth="0.7" strokeOpacity="0.55" filter="url(#glow)"/>
+  
+  <!-- Center divider lines -->
+  <line x1="98" y1="135" x2="158" y2="135" stroke="url(#goldGrad)" strokeWidth="0.5" strokeOpacity="0.5"/>
+  <line x1="98" y1="150" x2="158" y2="150" stroke="url(#goldGrad)" strokeWidth="0.5" strokeOpacity="0.5"/>
+  
+  <!-- Decorative elements -->
+  <text x="105" y="142" fontFamily="'Georgia', serif" fontSize="8" fill="#FFFFFF" fillOpacity="0.7" textAnchor="middle">·</text>
+  <text x="128" y="142" fontFamily="'Georgia', serif" fontSize="8" fill="#FFFFFF" fillOpacity="0.7" textAnchor="middle">·</text>
+  <text x="151" y="142" fontFamily="'Georgia', serif" fontSize="8" fill="#FFFFFF" fillOpacity="0.7" textAnchor="middle">·</text>
+  
+  <!-- Bottom accent -->
+  <circle cx="128" cy="253" r="2" fill="#F5D680" fillOpacity="0.5"/>
+</svg>

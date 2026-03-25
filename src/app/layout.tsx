@@ -15,6 +15,11 @@ export const metadata: Metadata = {
   keywords: ['news', 'Africa', 'Rwanda', 'politics', 'business', 'technology', 'Kigali'],
   authors: [{ name: 'Hirwa Ambassadeur Editorial' }],
   creator: 'Hirwa Ambassadeur',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/favicon.svg',
+  },
   openGraph: {
     type: 'website',
     locale: 'en_US',
