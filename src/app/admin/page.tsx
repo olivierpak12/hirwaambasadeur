@@ -140,6 +140,20 @@ export default function AdminPage() {
               textDecoration: 'none',
               borderRadius: '4px',
             }}>Jobs</a>
+            <button
+              onClick={handleClearAndRegenerate}
+              style={{
+                padding: '10px 20px',
+                backgroundColor: '#ff6b6b',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              🤖 Fix AI Stories
+            </button>
           </div>
         </nav>
 
