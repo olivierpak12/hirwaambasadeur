@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
@@ -10,6 +10,90 @@ const PRIMARY_LINKS = [
   'Sport', 'Culture', 'Health', 'Science', 'Africa'
 ];
 
+function LiveClock() {
+  const [now, setNow] = useState(new Date());
+
+  useEffect(() => {
+    // Sync to next full minute, then tick every 60s
+    const msToNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
+    const timeout = setTimeout(() => {
+      setNow(new Date());
+      const id = setInterval(() => setNow(new Date()), 60000);
+      return () => clearInterval(id);
+    }, msToNextMinute);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const timeStr = now.toLocaleTimeString('en-GB', {
+    hour: '2-digit', minute: '2-digit',
+  });
+  const dayStr = now.toLocaleDateString('en-GB', { weekday: 'long' });
+  const dateStr = now.toLocaleDateString('en-GB', {
+    day: 'numeric', month: 'long', year: 'numeric',
+  });
+
+  return (
+    <div style={{
+      display: 'flex',
+      alignItems: 'center',
+      gap: '14px',
+      flexShrink: 0,
+    }}>
+      {/* Vertical divider */}
+      <div style={{
+        width: '1px',
+        height: '34px',
+        backgroundColor: 'rgba(255,255,255,0.2)',
+      }} />
+
+      {/* Clock content */}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+        {/* Time */}
+        <span style={{
+          color: 'white',
+          fontSize: '22px',
+          fontWeight: '300',
+          fontFamily: 'Georgia, serif',
+          letterSpacing: '0.06em',
+          lineHeight: 1,
+        }}>
+          {timeStr}
+        </span>
+        {/* Day + dot + Date */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <span style={{
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '8.5px',
+            fontWeight: '600',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+          }}>
+            {dayStr}
+          </span>
+          <span style={{
+            width: '3px', height: '3px',
+            borderRadius: '50%',
+            backgroundColor: '#e8c97a',
+            display: 'inline-block',
+            flexShrink: 0,
+          }} />
+          <span style={{
+            color: 'rgba(255,255,255,0.5)',
+            fontSize: '8.5px',
+            fontWeight: '600',
+            fontFamily: 'Helvetica, Arial, sans-serif',
+            letterSpacing: '0.12em',
+            textTransform: 'uppercase',
+          }}>
+            {dateStr}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Navbar() {
   const tickerTitles = useQuery(api.articles.getTickerTitles);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -17,14 +101,12 @@ export default function Navbar() {
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerVisible, setTickerVisible] = useState(true);
 
-  // Reset ticker index if titles change and index is out of bounds
   useEffect(() => {
     if (tickerTitles && tickerIndex >= tickerTitles.length) {
       setTickerIndex(0);
     }
   }, [tickerTitles, tickerIndex]);
 
-  // Rotate ticker every 4 seconds
   useEffect(() => {
     if (!tickerTitles || tickerTitles.length === 0) return;
     const id = setInterval(() => {
@@ -40,8 +122,8 @@ export default function Navbar() {
   return (
     <header className="w-full sticky top-0 z-50" style={{ fontFamily: "'BBC Reith Sans', Helvetica, Arial, sans-serif" }}>
 
-      {/* ── Top bar: logo + search ── */}
-      <div style={{ backgroundColor: '#bb1919' }}>
+      {/* ── Top bar ── */}
+      <div style={{ backgroundColor: '#4a5c2f' }}>
         <div style={{
           maxWidth: '1280px',
           margin: '0 auto',
@@ -50,6 +132,7 @@ export default function Navbar() {
           alignItems: 'center',
           justifyContent: 'space-between',
           height: '68px',
+          gap: '12px',
         }}>
           {/* Hamburger */}
           <button
@@ -64,6 +147,7 @@ export default function Navbar() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
+              flexShrink: 0,
             }}
           >
             {menuOpen ? (
@@ -77,60 +161,39 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Centered logo */}
-          <Link href="/" style={{ textDecoration: 'none', position: 'absolute', left: '50%', transform: 'translateX(-50%)' }}>
-            <div style={{
-              backgroundColor: 'white',
-              padding: '5px 12px 4px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1px',
-              minWidth: '160px',
-            }}>
-              {/* HA monogram emblem */}
-              <svg width="36" height="22" viewBox="0 0 72 44" fill="none" xmlns="http://www.w3.org/2000/svg">
-                {/* Left pillar H */}
-                <rect x="2" y="4" width="6" height="36" fill="#bb1919"/>
-                <rect x="2" y="19" width="22" height="6" fill="#bb1919"/>
-                <rect x="18" y="4" width="6" height="36" fill="#bb1919"/>
-                {/* Divider */}
-                <rect x="33" y="0" width="1.5" height="44" fill="#e8c97a" opacity="0.7"/>
-                {/* Right pillar A */}
-                <path d="M45 40 L57 4 L69 40" stroke="#bb1919" strokeWidth="6" strokeLinejoin="round" fill="none"/>
-                <line x1="49" y1="27" x2="65" y2="27" stroke="#bb1919" strokeWidth="5"/>
-              </svg>
-              {/* Wordmark */}
-              <div style={{ textAlign: 'center', lineHeight: 1 }}>
-                <span style={{
-                  display: 'block',
-                  color: '#bb1919',
-                  fontWeight: '900',
-                  fontSize: '13px',
-                  letterSpacing: '0.12em',
-                  fontFamily: 'Georgia, serif',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap',
-                }}>
-                  Hirwa Ambassadeur
-                </span>
-                <span style={{
-                  display: 'block',
-                  color: '#888',
-                  fontWeight: '500',
-                  fontSize: '7.5px',
-                  letterSpacing: '0.25em',
-                  fontFamily: 'Helvetica, Arial, sans-serif',
-                  textTransform: 'uppercase',
-                  marginTop: '1px',
-                  whiteSpace: 'nowrap',
-                }}>
-                  Kigali · Rwanda
-                </span>
-              </div>
+          {/* Left: Wordmark */}
+          <Link href="/" style={{ textDecoration: 'none', flex: 1 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{
+                display: 'block',
+                color: 'white',
+                fontWeight: '900',
+                fontSize: '18px',
+                letterSpacing: '0.12em',
+                fontFamily: 'Georgia, serif',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+                lineHeight: 1,
+              }}>
+                Hirwa Ambassadeur
+              </span>
+              <span style={{
+                display: 'block',
+                color: 'rgba(255,255,255,0.55)',
+                fontWeight: '500',
+                fontSize: '8px',
+                letterSpacing: '0.3em',
+                fontFamily: 'Helvetica, Arial, sans-serif',
+                textTransform: 'uppercase',
+                whiteSpace: 'nowrap',
+              }}>
+                Kigali · Rwanda
+              </span>
             </div>
           </Link>
+
+          {/* Right: Live clock */}
+          <LiveClock />
 
           {/* Search */}
           <Link
@@ -143,6 +206,7 @@ export default function Navbar() {
               alignItems: 'center',
               justifyContent: 'center',
               textDecoration: 'none',
+              flexShrink: 0,
             }}
           >
             <svg width="20" height="20" fill="none" stroke="white" strokeWidth="2.5" viewBox="0 0 24 24">
@@ -188,14 +252,10 @@ export default function Navbar() {
                     flexShrink: 0,
                   }}
                   onMouseEnter={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)';
-                    }
+                    if (!isActive) e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.15)';
                   }}
                   onMouseLeave={(e) => {
-                    if (!isActive) {
-                      e.currentTarget.style.backgroundColor = 'transparent';
-                    }
+                    if (!isActive) e.currentTarget.style.backgroundColor = 'transparent';
                   }}
                 >
                   {cat}
@@ -208,85 +268,72 @@ export default function Navbar() {
 
       {/* ── Live ticker ── */}
       {tickerTitles && tickerTitles.length > 0 && (
-      <div style={{
-        backgroundColor: '#1a1a1a',
-        borderBottom: '1px solid #333',
-      }}>
-        <div style={{
-          maxWidth: '1280px',
-          margin: '0 auto',
-          padding: '0 16px',
-          display: 'flex',
-          alignItems: 'center',
-          gap: '12px',
-          height: '36px',
-          overflow: 'hidden',
-        }}>
-          {/* LIVE badge */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-            <span style={{
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: '#bb1919',
-              display: 'inline-block',
-              animation: 'livePulse 1.5s ease-in-out infinite',
-            }} />
-            <span style={{
-              color: 'white',
-              fontSize: '11px',
-              fontWeight: '800',
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
-            }}>LIVE</span>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: '1px', height: '16px', backgroundColor: '#444', flexShrink: 0 }} />
-
-          {/* Ticker text */}
-          <div style={{ flex: 1, overflow: 'hidden' }}>
-            <span style={{
-              color: 'rgba(255,255,255,0.9)',
-              fontSize: '12.5px',
-              fontWeight: '500',
-              opacity: tickerVisible ? 1 : 0,
-              transition: 'opacity 0.3s ease',
-              display: 'inline-block',
-            }}>
-              {tickerTitles[tickerIndex]}
-            </span>
-          </div>
-
-          {/* Navigation dots */}
-          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
-            {tickerTitles.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setTickerIndex(i); setTickerVisible(true); }}
-                style={{
-                  width: '5px',
-                  height: '5px',
-                  borderRadius: '50%',
-                  backgroundColor: i === tickerIndex ? 'white' : 'rgba(255,255,255,0.3)',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
-                  transition: 'background-color 0.2s',
-                }}
-              />
-            ))}
+        <div style={{ backgroundColor: '#1a1a1a', borderBottom: '1px solid #333' }}>
+          <div style={{
+            maxWidth: '1280px',
+            margin: '0 auto',
+            padding: '0 16px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            height: '36px',
+            overflow: 'hidden',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
+              <span style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: '#4a5c2f',
+                display: 'inline-block',
+                animation: 'livePulse 1.5s ease-in-out infinite',
+              }} />
+              <span style={{
+                color: 'white',
+                fontSize: '11px',
+                fontWeight: '800',
+                textTransform: 'uppercase',
+                letterSpacing: '0.12em',
+              }}>LIVE</span>
+            </div>
+            <div style={{ width: '1px', height: '16px', backgroundColor: '#444', flexShrink: 0 }} />
+            <div style={{ flex: 1, overflow: 'hidden' }}>
+              <span style={{
+                color: 'rgba(255,255,255,0.9)',
+                fontSize: '12.5px',
+                fontWeight: '500',
+                opacity: tickerVisible ? 1 : 0,
+                transition: 'opacity 0.3s ease',
+                display: 'inline-block',
+              }}>
+                {tickerTitles[tickerIndex]}
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+              {tickerTitles.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { setTickerIndex(i); setTickerVisible(true); }}
+                  style={{
+                    width: '5px',
+                    height: '5px',
+                    borderRadius: '50%',
+                    backgroundColor: i === tickerIndex ? 'white' : 'rgba(255,255,255,0.3)',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                    transition: 'background-color 0.2s',
+                  }}
+                />
+              ))}
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/* Mobile drawer */}
       {menuOpen && (
-        <div style={{
-          backgroundColor: '#8b1010',
-          borderTop: '1px solid rgba(255,255,255,0.2)',
-        }}>
+        <div style={{ backgroundColor: '#3a4a24', borderTop: '1px solid rgba(255,255,255,0.2)' }}>
           <div style={{ maxWidth: '1280px', margin: '0 auto', padding: '8px 16px' }}>
             {PRIMARY_LINKS.map((cat) => (
               <Link
@@ -315,7 +362,6 @@ export default function Navbar() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
         }
-        /* Hide scrollbar for category tabs */
         div::-webkit-scrollbar { display: none; }
       `}</style>
     </header>
