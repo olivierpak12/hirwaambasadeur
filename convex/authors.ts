@@ -6,14 +6,16 @@ import { v } from 'convex/values';
 
 export const getAllAuthors = query({
   handler: async (ctx) => {
-    return await ctx.db.query('authors').collect();
+    const authors = await ctx.db.query('authors').collect();
+    return await Promise.all(authors.map((author) => enrichAuthor(ctx, author)));
   },
 });
 
 export const getAuthorById = query({
   args: { authorId: v.id('authors') },
   handler: async (ctx, { authorId }) => {
-    return await ctx.db.get(authorId);
+    const author = await ctx.db.get(authorId);
+    return await enrichAuthor(ctx, author);
   },
 });
 
