@@ -212,49 +212,25 @@ export const seedInitialStory = mutation({
 export const clearAndRegenerateMutilingual = mutation({
   args: {},
   handler: async (ctx) => {
+    console.log('Starting clear and regenerate...');
+    
     // Delete all old stories
     const allStories = await ctx.db.query('aiStories').collect();
-    console.log('Deleting', allStories.length, 'old stories');
+    console.log('Found', allStories.length, 'stories to delete');
+    
     for (const story of allStories) {
       await ctx.db.delete(story._id);
     }
-
-    // Story pairs - hardcoded to ensure proper translations
-    const storyPairs = [
-      {
-        english: "Once upon a time, a chicken decided to start a band. But every time they tried to play, the drummer kept saying 'I'm too chicken to drum!' The band never took off, but the chicken became a famous comedian instead.",
-        kinyarwanda: "Hari igihe, inkoko yahisemo gutangiza umurika. Ariko buri gihe bagiye gukina, umushyitsi w'imbyino yavugaga 'ndatinya gukina!' Umurika ntiwagize amahirwe, ariko inkoko yabaye umukinnyi wamamaye.",
-        french: "Il était une fois, un poulet qui décida de former un groupe. Mais chaque fois qu'ils essayaient de jouer, le batteur disait 'J'ai trop peur de battre!' Le groupe n'a jamais décollé, mais le poulet est devenu un célèbre comédien.",
-      },
-      {
-        english: "A tomato and a potato were best friends. One day, the tomato said, 'I want to become a superhero!' The potato replied, 'That's great! Just don't get squashed!' The tomato became 'Super Squash' and saved the garden from hungry rabbits.",
-        kinyarwanda: "Inyanya n'ibirayi byari incuti magara. Umunsi umwe, inyanya yavuze 'ndashaka kuba umusirikare!' Ibirayi byasubije 'ni byiza! Gusa ntuzasatwe!' Inyanya yabaye 'Super Squash' ikiza ubutaka ku nsina zifite inzura.",
-        french: "Une tomate et une pomme de terre étaient les meilleures amies. Un jour, la tomate dit 'Je veux devenir un super-héros!' La pomme de terre répondit 'C'est génial! Ne te fais pas écraser!' La tomate devint 'Super Écrasé' et sauva le jardin des lapins affamés.",
-      },
-      {
-        english: "Why did the scarecrow win an award? Because he was outstanding in his field! He also told the best jokes, making all the crows laugh so hard they forgot to steal corn.",
-        kinyarwanda: "Kuki umupfumu w'imbuto yatsindiye igihembo? Kubera ko yari uwa mbere mu murima we! Yanavugaga amajambo meza, ashyira inyoni zose mu isezerano kugeza zibagirwa gukurira.",
-        french: "Pourquoi l'épouvantail a-t-il gagné un prix? Parce qu'il était exceptionnel dans son domaine! Il racontait aussi les meilleures blagues, faisant rire les corbeaux si fort qu'ils oubliaient de voler le maïs.",
-      },
-      {
-        english: "A penguin tried to fly south for winter, but kept falling into the water. 'I guess I'm just not cut out for this flying business,' he said. His friends told him, 'Don't worry, you're ice at swimming!'",
-        kinyarwanda: "Pengwini yagerageje kuruka amajyepfo mu gihe cy'ubukonje, ariko yicaga mu mazi. 'Ndabona ntako nakoze muri ubu buryo bwo kuruka,' yavuze. Incuti ze zimubwira 'Ntuzahangayike, uri ice mu koga!'",
-        french: "Un pingouin essaya de voler vers le sud pour l'hiver, mais tombait constamment dans l'eau. 'Je suppose que je ne suis pas fait pour ce métier de voler,' dit-il. Ses amis lui dirent 'Ne t'inquiète pas, tu es glace à la nage!'",
-      },
-      {
-        english: "Two cookies were baking in an oven. One said, 'Boy, it's hot in here!' The other replied, 'Holy smokes! A talking cookie!'",
-        kinyarwanda: "Cookies ebyiri zari zivuga mu ruhu. Imwe yavuze 'Mukuru, birashyu hano!' Iya kabiri isubiza 'Holy smokes! Cookie ivuga!'",
-        french: "Deux biscuits cuisaient dans un four. L'un dit 'Mon Dieu, il fait chaud ici!' L'autre répondit 'Sainte fumée! Un biscuit qui parle!'",
-      },
-    ];
-
+    
+    console.log('All stories deleted');
+    
+    // Use the getAllStoryPairs helper function
+    const storyPairs = getAllStoryPairs();
     const randomStory = storyPairs[Math.floor(Math.random() * storyPairs.length)];
-
-    console.log('=== GENERATING FRESH STORY ===');
-    console.log('English:', randomStory.english.substring(0, 50));
-    console.log('Kinyarwanda:', randomStory.kinyarwanda.substring(0, 50));
-    console.log('French:', randomStory.french.substring(0, 50));
-
+    
+    console.log('Selected story pair');
+    
+    // Create new story with all three language fields
     const newStoryId = await ctx.db.insert('aiStories', {
       englishText: randomStory.english,
       kinyarwandaText: randomStory.kinyarwanda,
@@ -262,9 +238,8 @@ export const clearAndRegenerateMutilingual = mutation({
       generatedAt: new Date().toISOString(),
       isActive: true,
     });
-
-    console.log('Fresh story inserted with ID:', newStoryId);
-
+    
+    console.log('New story created:', newStoryId);
     return newStoryId;
   },
 });
