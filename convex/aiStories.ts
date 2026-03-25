@@ -2,6 +2,35 @@ import { query, mutation } from './_generated/server';
 import { api } from './_generated/api';
 import { v } from 'convex/values';
 
+// Module-level constant for story pairs to ensure accessibility
+const STORY_PAIRS = [
+  {
+    english: "Once upon a time, a chicken decided to start a band. But every time they tried to play, the drummer kept saying 'I'm too chicken to drum!' The band never took off, but the chicken became a famous comedian instead.",
+    kinyarwanda: "Hari igihe, inkoko yahisemo gutangiza umurika. Ariko buri gihe bagiye gukina, umushyitsi w'imbyino yavugaga 'ndatinya gukina!' Umurika ntiwagize amahirwe, ariko inkoko yabaye umukinnyi wamamaye.",
+    french: "Il était une fois, un poulet qui décida de former un groupe. Mais chaque fois qu'ils essayaient de jouer, le batteur disait 'J'ai trop peur de battre!' Le groupe n'a jamais décollé, mais le poulet est devenu un célèbre comédien.",
+  },
+  {
+    english: "A tomato and a potato were best friends. One day, the tomato said, 'I want to become a superhero!' The potato replied, 'That's great! Just don't get squashed!' The tomato became 'Super Squash' and saved the garden from hungry rabbits.",
+    kinyarwanda: "Inyanya n'ibirayi byari incuti magara. Umunsi umwe, inyanya yavuze 'ndashaka kuba umusirikare!' Ibirayi byasubije 'ni byiza! Gusa ntuzasatwe!' Inyanya yabaye 'Super Squash' ikiza ubutaka ku nsina zifite inzura.",
+    french: "Une tomate et une pomme de terre étaient les meilleures amies. Un jour, la tomate dit 'Je veux devenir un super-héros!' La pomme de terre répondit 'C'est génial! Ne te fais pas écraser!' La tomate devint 'Super Écrasé' et sauva le jardin des lapins affamés.",
+  },
+  {
+    english: "Why did the scarecrow win an award? Because he was outstanding in his field! He also told the best jokes, making all the crows laugh so hard they forgot to steal corn.",
+    kinyarwanda: "Kuki umupfumu w'imbuto yatsindiye igihembo? Kubera ko yari uwa mbere mu murima we! Yanavugaga amajambo meza, ashyira inyoni zose mu isezerano kugeza zibagirwa gukurira.",
+    french: "Pourquoi l'épouvantail a-t-il gagné un prix? Parce qu'il était exceptionnel dans son domaine! Il racontait aussi les meilleures blagues, faisant rire les corbeaux si fort qu'ils oubliaient de voler le maïs.",
+  },
+  {
+    english: "A penguin tried to fly south for winter, but kept falling into the water. 'I guess I'm just not cut out for this flying business,' he said. His friends told him, 'Don't worry, you're ice at swimming!'",
+    kinyarwanda: "Pengwini yagerageje kuruka amajyepfo mu gihe cy'ubukonje, ariko yicaga mu mazi. 'Ndabona ntako nakoze muri ubu buryo bwo kuruka,' yavuze. Incuti ze zimubwira 'Ntuzahangayike, uri ice mu koga!'",
+    french: "Un pingouin essaya de voler vers le sud pour l'hiver, mais tombait constamment dans l'eau. 'Je suppose que je ne suis pas fait pour ce métier de voler,' dit-il. Ses amis lui dirent 'Ne t'inquiète pas, tu es glace à la nage!'",
+  },
+  {
+    english: "Two cookies were baking in an oven. One said, 'Boy, it's hot in here!' The other replied, 'Holy smokes! A talking cookie!'",
+    kinyarwanda: "Cookies ebyiri zari zivuga mu ruhu. Imwe yavuze 'Mukuru, birashyu hano!' Iya kabiri isubiza 'Holy smokes! Cookie ivuga!'",
+    french: "Deux biscuits cuisaient dans un four. L'un dit 'Mon Dieu, il fait chaud ici!' L'autre répondit 'Sainte fumée! Un biscuit qui parle!'",
+  },
+];
+
 // Get the latest active AI story
 export const getLatestStory = query({
   args: {},
@@ -29,9 +58,8 @@ export const generateNewStory = mutation({
       await ctx.db.patch(currentActive._id, { isActive: false });
     }
 
-    // Generate new story content in all three languages (same story different languages)
-    const storyPairs = getAllStoryPairs();
-    const randomStory = storyPairs[Math.floor(Math.random() * storyPairs.length)];
+    // Pick random story pair
+    const randomStory = STORY_PAIRS[Math.floor(Math.random() * STORY_PAIRS.length)];
 
     console.log('=== GENERATING NEW STORY ===');
     console.log('English:', randomStory.english.substring(0, 50));
@@ -190,8 +218,7 @@ export const seedInitialStory = mutation({
     }
 
     // Create initial story with matched translations
-    const storyPairs = getAllStoryPairs();
-    const initialStory = storyPairs[0]; // Use first story
+    const initialStory = STORY_PAIRS[0]; // Use first story
 
     const storyId = await ctx.db.insert('aiStories', {
       englishText: initialStory.english,
@@ -224,11 +251,10 @@ export const clearAndRegenerateMutilingual = mutation({
     
     console.log('All stories deleted');
     
-    // Use the getAllStoryPairs helper function
-    const storyPairs = getAllStoryPairs();
-    const randomStory = storyPairs[Math.floor(Math.random() * storyPairs.length)];
+    // Pick random story pair from constant
+    const randomStory = STORY_PAIRS[Math.floor(Math.random() * STORY_PAIRS.length)];
     
-    console.log('Selected story pair');
+    console.log('Selected story pair:', randomStory.english.substring(0, 40));
     
     // Create new story with all three language fields
     const newStoryId = await ctx.db.insert('aiStories', {
