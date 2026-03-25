@@ -29,12 +29,12 @@ export const generateNewStory = mutation({
       await ctx.db.patch(currentActive._id, { isActive: false });
     }
 
-    // Generate new story content
+    // Generate new story content in all three languages
     // Note: In a real implementation, you would call an AI API here
-    // For now, using placeholder content
+    // For now, using sample content
     const englishStory = await generateFunnyStory('english');
-    const kinyarwandaStory = await translateStory(englishStory, 'kinyarwanda');
-    const frenchStory = await translateStory(englishStory, 'french');
+    const kinyarwandaStory = await generateFunnyStory('kinyarwanda');
+    const frenchStory = await generateFunnyStory('french');
 
     const newStoryId = await ctx.db.insert('aiStories', {
       englishText: englishStory,
@@ -104,22 +104,8 @@ async function generateFunnyStory(language: string): Promise<string> {
 
 // Helper function to translate story (placeholder - replace with translation API)
 async function translateStory(story: string, targetLanguage: string): Promise<string> {
-  // TODO: Replace with actual translation API integration
-  // Example with Google Translate API:
-  // const response = await fetch(`https://translation.googleapis.com/language/translate/v2?key=${process.env.GOOGLE_TRANSLATE_API_KEY}`, {
-  //   method: 'POST',
-  //   headers: { 'Content-Type': 'application/json' },
-  //   body: JSON.stringify({
-  //     q: story,
-  //     target: targetLanguage === 'kinyarwanda' ? 'rw' : targetLanguage === 'french' ? 'fr' : 'en',
-  //     source: 'en',
-  //   }),
-  // });
-  // const data = await response.json();
-  // return data.data.translations[0].translatedText;
-
-  // For now, return the original story (in a real implementation, this would translate)
-  // In the sample stories above, we already have translations, so this is just a placeholder
+  // Note: This function is deprecated - stories are now generated in all languages directly
+  // Kept for backwards compatibility
   return story;
 }
 
