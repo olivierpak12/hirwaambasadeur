@@ -9,7 +9,7 @@ export default function AuthorPage() {
   const params = useParams();
   const authorId = params.id as string;
 
-  const author = useQuery(api.authors.getAuthorById, { authorId: authorId as any });
+  const author = useQuery(api.authors.getAuthorWithPhoto, { authorId: authorId as any });
   const authorArticles = useQuery(api.articles.getAuthorArticles, { authorId: authorId as any });
 
   if (!author) {
@@ -31,8 +31,8 @@ export default function AuthorPage() {
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex flex-col md:flex-row gap-8 items-start">
             {/* Author Photo */}
-            {author.photo && (
-              <div className="md:w-1/3">
+            <div className="md:w-1/3">
+              {author.photo ? (
                 <div className="h-64 w-full md:w-64 rounded-lg overflow-hidden bg-gray-100">
                   <img
                     src={author.photo}
@@ -40,8 +40,12 @@ export default function AuthorPage() {
                     className="w-full h-full object-cover"
                   />
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="h-64 w-full md:w-64 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center text-gray-500 text-sm font-semibold">
+                  No profile photo
+                </div>
+              )}
+            </div>
 
             {/* Author Info */}
             <div className="md:w-2/3">
