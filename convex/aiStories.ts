@@ -252,16 +252,21 @@ export const clearAndRegenerateMutilingual = mutation({
 
       console.log('All stories deleted');
 
-      // Create a simple test story
+      // Pick random story pair from constant
+      const randomStory = STORY_PAIRS[Math.floor(Math.random() * STORY_PAIRS.length)];
+
+      console.log('Selected story pair:', randomStory.english.substring(0, 40));
+
+      // Create new story with all three language fields
       const newStoryId = await ctx.db.insert('aiStories', {
-        englishText: "Test story in English",
-        kinyarwandaText: "Test story in Kinyarwanda",
-        frenchText: "Test story in French",
+        englishText: randomStory.english,
+        kinyarwandaText: randomStory.kinyarwanda,
+        frenchText: randomStory.french,
         generatedAt: new Date().toISOString(),
         isActive: true,
       });
 
-      console.log('Test story created:', newStoryId);
+      console.log('New story created:', newStoryId);
       return newStoryId;
     } catch (error) {
       console.error('Error in clearAndRegenerateMutilingual:', error);
