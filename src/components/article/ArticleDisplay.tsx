@@ -52,6 +52,27 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
   const [authorEmail, setAuthorEmail] = useState('');
   const [showComments, setShowComments] = useState(false);
   const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+  const [canSeeViews, setCanSeeViews] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const adminRole = window.localStorage.getItem('adminRole');
+    const loggedAuthorId = window.localStorage.getItem('authorId');
+    const articleAuthorId = article.author?._id ? String(article.author._id) : null;
+
+    if (adminRole === 'admin') {
+      setCanSeeViews(true);
+      return;
+    }
+
+    if (loggedAuthorId && articleAuthorId && loggedAuthorId === articleAuthorId) {
+      setCanSeeViews(true);
+      return;
+    }
+
+    setCanSeeViews(false);
+  }, [article.author]);
 
   // ── Lightbox ──
   const [lbOpen, setLbOpen] = useState(false);
@@ -511,7 +532,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
               )}
               {article.author && <span className="art-meta-div" />}
               <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#777' }}>{publishDate}</span>
-              {article.views && article.views > 0 && (
+              {canSeeViews && article.views && article.views > 0 && (
                 <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{article.views.toLocaleString()} views</span>
               )}
             </div>
