@@ -220,6 +220,8 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
 
         .art-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; padding-bottom: 16px; border-bottom: 1px solid #e8e2d4; margin-bottom: 20px; }
         .art-meta-div { width: 1px; height: 20px; background: #e0dbd2; flex-shrink: 0; }
+        .art-author-avatar { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; border: 1.5px solid #e8e2d4; }
+        .art-author-avatar-init { width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0; background: #1a3d28; display: flex; align-items: center; justify-content: center; color: #c9a84c; font-size: 14px; font-weight: 700; font-family: 'Playfair Display', serif; }
 
         .art-ad { background: #fafaf8; border: 1px dashed #d0cbc0; border-radius: 3px; text-align: center; padding: 10px; margin-bottom: 24px; }
         .art-ad p { font-family: 'DM Sans', sans-serif; font-size: 9px; color: #bbb; letter-spacing: 0.1em; text-transform: uppercase; margin: 0; }
@@ -495,13 +497,16 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
               {article.author && (
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                   {article.author.photo
-                    ? <img src={article.author.photo} alt={article.author.name} style={{ width: 32, height: 32, borderRadius: '50%', objectFit: 'cover', border: '1.5px solid #e8e2d4', flexShrink: 0 }} />
-                    : <div style={{ width: 32, height: 32, borderRadius: '50%', background: '#1a3d28', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#c9a84c', fontSize: 13, fontWeight: 700, flexShrink: 0, fontFamily: "'Playfair Display',serif" }}>{article.author.name.charAt(0).toUpperCase()}</div>
+                    ? <img src={article.author.photo} alt={`${article.author.name} photo`} className="art-author-avatar" />
+                    : <div className="art-author-avatar-init">{article.author.name.charAt(0).toUpperCase()}</div>
                   }
-                  {article.author._id
-                    ? <Link href={`/author/${article.author._id}`} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: '#1a1a1a', textDecoration: 'none' }}>{article.author.name}</Link>
-                    : <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{article.author.name}</span>
-                  }
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#777', textTransform: 'uppercase', letterSpacing: '0.08em' }}>By</span>
+                    {article.author._id
+                      ? <Link href={`/author/${article.author._id}`} style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: '#1a1a1a', textDecoration: 'none' }}>{article.author.name}</Link>
+                      : <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 13, fontWeight: 600, color: '#1a1a1a' }}>{article.author.name}</span>
+                    }
+                  </div>
                 </div>
               )}
               {article.author && <span className="art-meta-div" />}
