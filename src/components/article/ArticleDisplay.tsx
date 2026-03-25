@@ -506,7 +506,9 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
               )}
               {article.author && <span className="art-meta-div" />}
               <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 12, color: '#777' }}>{publishDate}</span>
-              <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{(article.views || 0).toLocaleString()} views</span>
+              {article.views && article.views > 0 && (
+                <span style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 11, color: '#bbb', marginLeft: 'auto' }}>{article.views.toLocaleString()} views</span>
+              )}
             </div>
 
             {/* ══ AD ══ */}
@@ -563,7 +565,7 @@ export default function ArticleDisplay({ article, relatedArticles = [] }: Articl
                   : <div className="author-av-init">{article.author.name.charAt(0).toUpperCase()}</div>
                 }
                 <div style={{ minWidth: 0 }}>
-                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, color: '#aaa', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4, marginTop: 0 }}>About the author</p>
+                  <p style={{ fontFamily: "'DM Sans',sans-serif", fontSize: 9, color: '#aaa', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: 4, marginTop: 0 }}>About the journalist</p>
                   {article.author._id
                     ? <Link href={`/author/${article.author._id}`} style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: '#1a3d28', textDecoration: 'none', display: 'block', marginBottom: 6 }}>{article.author.name}</Link>
                     : <p style={{ fontFamily: "'Playfair Display',serif", fontSize: 16, fontWeight: 600, color: '#1a3d28', marginBottom: 6, marginTop: 0 }}>{article.author.name}</p>

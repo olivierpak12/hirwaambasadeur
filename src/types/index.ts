@@ -1,5 +1,5 @@
-// User/Author types
-export interface Author {
+// User/Journalist types
+export interface Journalist {
  _id?: string;
  name: string;
  email: string;
@@ -27,7 +27,7 @@ export interface Article {
  excerpt: string;
  featuredImage?: string;
  category: Category | string;
- author: Author | string;
+ author: Journalist | string;
  publishedAt: string;
  updatedAt?: string;
  views?: number;

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useQuery } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 
-export default function AuthorPage() {
+export default function JournalistPage() {
   const params = useParams();
   const authorId = params.id as string;
 
@@ -16,7 +16,7 @@ export default function AuthorPage() {
     return (
       <div className="container mx-auto px-4 py-12">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-black">Author not found</h1>
+          <h1 className="text-2xl font-bold text-black">Journalist not found</h1>
         </div>
       </div>
     );
@@ -26,11 +26,11 @@ export default function AuthorPage() {
 
   return (
     <div className="container mx-auto px-4 py-12">
-      {/* Author Profile Header */}
+      {/* Journalist Profile Header */}
       <div className="max-w-4xl mx-auto mb-12">
         <div className="bg-white rounded-lg shadow-lg p-8">
           <div className="flex flex-col md:flex-row gap-8 items-start">
-            {/* Author Photo */}
+            {/* Journalist Photo */}
             <div className="md:w-1/3">
               {author.photo ? (
                 <div className="h-64 w-full md:w-64 rounded-lg overflow-hidden bg-gray-100">
@@ -47,7 +47,7 @@ export default function AuthorPage() {
               )}
             </div>
 
-            {/* Author Info */}
+            {/* Journalist Info */}
             <div className="md:w-2/3">
               <h1 className="text-4xl font-bold mb-2 text-black">{author.name}</h1>
 
@@ -80,7 +80,7 @@ export default function AuthorPage() {
         </div>
       </div>
 
-      {/* Author's Articles */}
+      {/* Journalist's Articles */}
       <div className="max-w-4xl mx-auto mb-12">
         <h2 className="text-3xl font-bold mb-8 text-black">Articles by {author.name}</h2>
 

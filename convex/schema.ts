@@ -2,7 +2,7 @@ import { defineSchema, defineTable } from 'convex/server';
 import { v } from 'convex/values';
 
 export default defineSchema({
-  // Authors/Journalists
+  // Authors/Journalists (keeping table name as 'authors' for backward compatibility)
   authors: defineTable({
     name: v.string(),
     email: v.string(),

@@ -19,7 +19,7 @@ This is a Next.js-based professional online news website built with modern techn
 5. Submit news page for journalists and contributors
 6. Contact form for readers
 7. Full-text search functionality
-8. Admin dashboard for managing articles, authors, categories, submissions
+8. Admin dashboard for managing articles, journalists, categories, submissions
 9. Advertisement system (Google AdSense integration ready)
 10. Responsive design for mobile, tablet, desktop
 11. SEO optimized with meta tags and structured data

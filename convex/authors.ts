@@ -1,7 +1,7 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
 
-// Author queries and mutations
+// Journalist queries and mutations
 // These are now active Convex server functions.
 
 export const getAllAuthors = query({

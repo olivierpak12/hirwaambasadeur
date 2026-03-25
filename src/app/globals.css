@@ -70,3 +70,37 @@ a:focus {
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+/* Author avatar styles */
+.author-block {
+  display: flex;
+  gap: 16px;
+  padding: 24px 0;
+  border-top: 1px solid #e8e2d4;
+  margin-top: 24px;
+}
+
+.author-av {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid #e8e2d4;
+  flex-shrink: 0;
+}
+
+.author-av-init {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #1a3d28;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c9a84c;
+  font-size: 20px;
+  font-weight: 700;
+  font-family: 'Playfair Display', serif;
+  border: 2px solid #e8e2d4;
+  flex-shrink: 0;
+}

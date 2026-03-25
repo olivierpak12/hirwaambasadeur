@@ -15,7 +15,7 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-export default function AuthorsAdminPage() {
+export default function JournalistsAdminPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminName, setAdminName] = useState('');
@@ -226,7 +226,7 @@ export default function AuthorsAdminPage() {
           overflowY: 'auto',
         }}>
           <h2 style={{ margin: '0 0 24px', fontSize: 20, fontWeight: 700, color: '#c9a84c' }}>
-            Edit Author
+            Edit Journalist
           </h2>
 
           {error && (
@@ -245,7 +245,7 @@ export default function AuthorsAdminPage() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
             <div>
-              <Label>Author Name *</Label>
+              <Label>Journalist Name *</Label>
               <input
                 type="text"
                 value={editName}
@@ -262,7 +262,7 @@ export default function AuthorsAdminPage() {
                 type="email"
                 value={editEmail}
                 onChange={(e) => setEditEmail(e.target.value)}
-                placeholder="author@example.com"
+                placeholder="journalist@example.com"
                 style={fieldStyle}
                 onFocus={onFocus}
                 onBlur={onBlur}
@@ -275,7 +275,7 @@ export default function AuthorsAdminPage() {
             <textarea
               value={editBio}
               onChange={(e) => setEditBio(e.target.value)}
-              placeholder="Author biography..."
+              placeholder="Journalist biography..."
               style={{
                 ...fieldStyle,
                 minHeight: 100,
@@ -411,7 +411,7 @@ export default function AuthorsAdminPage() {
           maxWidth: 1100, margin: '0 auto',
           display: 'flex', alignItems: 'center', gap: 14, height: 54,
         }}>
-          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#c9a84c', flex: 1 }}>Authors Management</h1>
+          <h1 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: '#c9a84c', flex: 1 }}>Journalists Management</h1>
           <button onClick={() => router.push('/admin/create')} style={{
             padding: '8px 12px', fontSize: 11, background: 'transparent',
             color: '#5a8a6a', border: '1px solid rgba(201,168,76,0.2)',
@@ -459,7 +459,7 @@ export default function AuthorsAdminPage() {
               textTransform: 'capitalize',
             }}
           >
-            {tab === 'create' ? '+ New Author' : 'All Authors'}
+            {tab === 'create' ? '+ New Journalist' : 'All Journalists'}
           </button>
         ))}
       </div>
@@ -476,7 +476,7 @@ export default function AuthorsAdminPage() {
             padding: 32,
           }}>
             <h2 style={{ margin: '0 0 24px', fontSize: 20, fontWeight: 700, color: '#c9a84c' }}>
-              Add New Author
+              Add New Journalist
             </h2>
 
             {error && (
@@ -503,13 +503,13 @@ export default function AuthorsAdminPage() {
                 marginBottom: 20,
                 fontSize: 13,
               }}>
-                ✓ Author created successfully!
+                ✓ Journalist created successfully!
               </div>
             )}
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
               <div>
-                <Label>Author Name *</Label>
+                <Label>Journalist Name *</Label>
                 <input
                   type="text"
                   value={name}
@@ -526,7 +526,7 @@ export default function AuthorsAdminPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="author@example.com"
+                  placeholder="journalist@example.com"
                   style={fieldStyle}
                   onFocus={onFocus}
                   onBlur={onBlur}
@@ -539,7 +539,7 @@ export default function AuthorsAdminPage() {
               <textarea
                 value={bio}
                 onChange={(e) => setBio(e.target.value)}
-                placeholder="Author biography..."
+                placeholder="Journalist biography..."
                 style={{
                   ...fieldStyle,
                   minHeight: 100,

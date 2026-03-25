@@ -117,7 +117,7 @@ export default function SubmitNewsPage() {
 
               <div>
                 <label htmlFor="authorName" className="block text-sm font-semibold text-slate-700">
-                  Author name*
+                  Journalist name*
                 </label>
                 <input
                   id="authorName"
