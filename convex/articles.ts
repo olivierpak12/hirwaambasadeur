@@ -7,6 +7,25 @@ async function enrichArticle(ctx: any, article: any, includeStats = false) {
   const author = await ctx.db.get(article.authorId);
   const category = await ctx.db.get(article.categoryId);
 
+  // Resolve author profile photo from storage ID if needed.
+  let enrichedAuthor = author;
+  if (author) {
+    let photo = author.photo;
+    if (author.photoStorageId) {
+      try {
+        const storageUrl = await ctx.storage.getUrl(author.photoStorageId);
+        if (storageUrl) photo = storageUrl;
+      } catch (err) {
+        console.error('Error resolving author photo url:', err);
+      }
+    }
+
+    enrichedAuthor = {
+      ...author,
+      photo,
+    };
+  }
+
   // Handle the 'featured' flag and related image storage IDs
   // Schema can have:
   // - featuredImageIds (array of storage IDs)
@@ -97,7 +116,7 @@ async function enrichArticle(ctx: any, article: any, includeStats = false) {
     featuredImage: resolvedFeaturedImage || undefined,
     featuredImageUrl: resolvedFeaturedImage || undefined,
     images,
-    author: author ?? undefined,
+    author: enrichedAuthor ?? undefined,
     category: category ?? undefined,
     ...(includeStats && { commentCount, likeCount }),
   };
