@@ -20,16 +20,21 @@ export default function AIStory() {
 
   const getStoryText = () => {
     if (!story) return '';
-    switch (selectedLanguage) {
-      case 'english':
-        return story.englishText || '';
-      case 'kinyarwanda':
-        return story.kinyarwandaText || story.englishText || ''; // Fallback to English if translation missing
-      case 'french':
-        return story.frenchText || story.englishText || ''; // Fallback to English if translation missing
-      default:
-        return story.englishText || '';
-    }
+    const text = (() => {
+      switch (selectedLanguage) {
+        case 'english':
+          return story.englishText;
+        case 'kinyarwanda':
+          return story.kinyarwandaText;
+        case 'french':
+          return story.frenchText;
+        default:
+          return story.englishText;
+      }
+    })();
+    
+    console.log(`[AIStory] Language: ${selectedLanguage}, Text: ${text?.substring(0, 50)}`);
+    return text || '';
   };
 
   const getLanguageLabel = (lang: Language) => {
@@ -143,6 +148,22 @@ export default function AIStory() {
         textAlign: 'right',
       }}>
         Generated {new Date(story.generatedAt).toLocaleDateString()}
+      </div>
+
+      {/* Debug info - remove in production */}
+      <div style={{
+        marginTop: '12px',
+        fontSize: '9px',
+        color: '#ccc',
+        borderTop: '1px solid #eee',
+        paddingTop: '8px',
+        fontFamily: 'monospace',
+        maxHeight: '60px',
+        overflow: 'auto',
+      }}>
+        <div>eng: {story.englishText?.substring(0, 30)}...</div>
+        <div>kin: {story.kinyarwandaText?.substring(0, 30)}...</div>
+        <div>fr: {story.frenchText?.substring(0, 30)}...</div>
       </div>
     </div>
   );
