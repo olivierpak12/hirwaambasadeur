@@ -33,6 +33,11 @@ export const generateNewStory = mutation({
     const storyPairs = getAllStoryPairs();
     const randomStory = storyPairs[Math.floor(Math.random() * storyPairs.length)];
 
+    console.log('=== GENERATING NEW STORY ===');
+    console.log('English:', randomStory.english.substring(0, 50));
+    console.log('Kinyarwanda:', randomStory.kinyarwanda.substring(0, 50));
+    console.log('French:', randomStory.french.substring(0, 50));
+
     const newStoryId = await ctx.db.insert('aiStories', {
       englishText: randomStory.english,
       kinyarwandaText: randomStory.kinyarwanda,
@@ -40,6 +45,8 @@ export const generateNewStory = mutation({
       generatedAt: new Date().toISOString(),
       isActive: true,
     });
+
+    console.log('Story inserted with ID:', newStoryId);
 
     // Schedule the next generation in 24 hours
     await ctx.scheduler.runAfter(24 * 60 * 60 * 1000, api.aiStories.generateNewStory, {});
@@ -207,6 +214,7 @@ export const clearAndRegenerateMutilingual = mutation({
   handler: async (ctx) => {
     // Delete all old stories
     const allStories = await ctx.db.query('aiStories').collect();
+    console.log('Deleting', allStories.length, 'old stories');
     for (const story of allStories) {
       await ctx.db.delete(story._id);
     }
@@ -215,6 +223,11 @@ export const clearAndRegenerateMutilingual = mutation({
     const storyPairs = getAllStoryPairs();
     const randomStory = storyPairs[Math.floor(Math.random() * storyPairs.length)];
 
+    console.log('=== GENERATING FRESH STORY ===');
+    console.log('English:', randomStory.english.substring(0, 50));
+    console.log('Kinyarwanda:', randomStory.kinyarwanda.substring(0, 50));
+    console.log('French:', randomStory.french.substring(0, 50));
+
     const newStoryId = await ctx.db.insert('aiStories', {
       englishText: randomStory.english,
       kinyarwandaText: randomStory.kinyarwanda,
@@ -222,6 +235,8 @@ export const clearAndRegenerateMutilingual = mutation({
       generatedAt: new Date().toISOString(),
       isActive: true,
     });
+
+    console.log('Fresh story inserted with ID:', newStoryId);
 
     return newStoryId;
   },
