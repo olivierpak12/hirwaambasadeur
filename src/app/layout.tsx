@@ -6,6 +6,7 @@ import Footer from '@/components/layout/Footer';
 import ConvexClientProvider from '@/components/providers/ConvexClientProvider';
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://hirwa.live'),
   title: {
     default: 'Hirwa Ambassadeur — Breaking News & In-Depth Coverage',
     template: '%s | Hirwa Ambassadeur',
