@@ -239,33 +239,33 @@ export const seedInitialStory = mutation({
 export const clearAndRegenerateMutilingual = mutation({
   args: {},
   handler: async (ctx) => {
-    console.log('Starting clear and regenerate...');
-    
-    // Delete all old stories
-    const allStories = await ctx.db.query('aiStories').collect();
-    console.log('Found', allStories.length, 'stories to delete');
-    
-    for (const story of allStories) {
-      await ctx.db.delete(story._id);
+    try {
+      console.log('Starting clear and regenerate...');
+
+      // Delete all old stories
+      const allStories = await ctx.db.query('aiStories').collect();
+      console.log('Found', allStories.length, 'stories to delete');
+
+      for (const story of allStories) {
+        await ctx.db.delete(story._id);
+      }
+
+      console.log('All stories deleted');
+
+      // Create a simple test story
+      const newStoryId = await ctx.db.insert('aiStories', {
+        englishText: "Test story in English",
+        kinyarwandaText: "Test story in Kinyarwanda",
+        frenchText: "Test story in French",
+        generatedAt: new Date().toISOString(),
+        isActive: true,
+      });
+
+      console.log('Test story created:', newStoryId);
+      return newStoryId;
+    } catch (error) {
+      console.error('Error in clearAndRegenerateMutilingual:', error);
+      throw error;
     }
-    
-    console.log('All stories deleted');
-    
-    // Pick random story pair from constant
-    const randomStory = STORY_PAIRS[Math.floor(Math.random() * STORY_PAIRS.length)];
-    
-    console.log('Selected story pair:', randomStory.english.substring(0, 40));
-    
-    // Create new story with all three language fields
-    const newStoryId = await ctx.db.insert('aiStories', {
-      englishText: randomStory.english,
-      kinyarwandaText: randomStory.kinyarwanda,
-      frenchText: randomStory.french,
-      generatedAt: new Date().toISOString(),
-      isActive: true,
-    });
-    
-    console.log('New story created:', newStoryId);
-    return newStoryId;
   },
 });
