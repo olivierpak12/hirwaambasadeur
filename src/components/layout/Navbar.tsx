@@ -130,8 +130,8 @@ export default function Navbar() {
     <header className="w-full sticky top-0 z-50" style={{ fontFamily: "'BBC Reith Sans', Helvetica, Arial, sans-serif" }}>
 
       {/* ── Top bar ── */}
-      <div style={{ backgroundColor: '#4a5c2f' }}>
-        <div style={{
+      <div className="ha-top-bar-row" style={{ backgroundColor: '#4a5c2f' }}>
+        <div className="ha-top-bar-content" style={{
           maxWidth: '1280px',
           margin: '0 auto',
           padding: '0 16px',
@@ -446,8 +446,22 @@ export default function Navbar() {
           0%, 100% { opacity: 1; transform: scale(1); }
           50% { opacity: 0.4; transform: scale(0.8); }
         }
+
         div::-webkit-scrollbar { display: none; }
-        /* Hide wordmark on very small screens to avoid overflow */
+
+        /* Mobile responsive tweaks */
+        @media (max-width: 640px) {
+          .ha-wordmark-block { display: none !important; }
+          .ha-clock-divider { display: none !important; }
+          .ha-clock-date { display: none !important; }
+          .ha-clock-time { font-size: 16px !important; letter-spacing: 0.04em !important; }
+          .ha-clock-time, .ha-clock-date, .ha-clock-divider { min-width: 0; }
+
+          /* Shrink top bar spacing */
+          .ha-top-bar-row { gap: 8px !important; }
+          .ha-top-bar-content { padding: 0 10px !important; }
+        }
+
         @media (max-width: 420px) {
           .ha-wordmark-block { display: none !important; }
         }
