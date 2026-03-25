@@ -16,10 +16,15 @@ export const metadata: Metadata = {
   authors: [{ name: 'Hirwa Ambassadeur Editorial' }],
   creator: 'Hirwa Ambassadeur',
   icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.svg',
-    apple: '/favicon.svg',
+    icon: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
+      { url: '/favicon-32x32.png', sizes: '32x32', type: 'image/png' },
+      { url: '/favicon-16x16.png', sizes: '16x16', type: 'image/png' },
+    ],
+    shortcut: '/favicon.ico',
+    apple: '/favicon-180x180.png',
   },
+  manifest: '/manifest.json',
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -27,13 +32,27 @@ export const metadata: Metadata = {
     title: 'Hirwa Ambassadeur — Breaking News & In-Depth Coverage',
     description:
       'Your trusted source for breaking news, politics, business, technology and more from Africa and the world.',
+    images: [
+      {
+        url: '/favicon-512x512.png',
+        width: 512,
+        height: 512,
+        alt: 'Hirwa Ambassadeur Logo',
+      },
+    ],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Hirwa Ambassadeur',
     description: 'Breaking news and in-depth coverage from Africa and the world.',
+    images: ['/favicon-192x192.png'],
   },
   robots: { index: true, follow: true },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Hirwa Ambassadeur',
+  },
 };
 
 export const viewport: Viewport = {
