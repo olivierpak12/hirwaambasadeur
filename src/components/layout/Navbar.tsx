@@ -14,7 +14,6 @@ function LiveClock() {
   const [now, setNow] = useState(new Date());
 
   useEffect(() => {
-    // Sync to next full minute, then tick every 60s
     const msToNextMinute = (60 - now.getSeconds()) * 1000 - now.getMilliseconds();
     const timeout = setTimeout(() => {
       setNow(new Date());
@@ -24,73 +23,77 @@ function LiveClock() {
     return () => clearTimeout(timeout);
   }, []);
 
-  const timeStr = now.toLocaleTimeString('en-GB', {
-    hour: '2-digit', minute: '2-digit',
-  });
-  const dayStr = now.toLocaleDateString('en-GB', { weekday: 'long' });
-  const dateStr = now.toLocaleDateString('en-GB', {
-    day: 'numeric', month: 'long', year: 'numeric',
-  });
+  const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+  const dayStr = now.toLocaleDateString('en-GB', { weekday: 'short' });
+  const dateStr = now.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      gap: '14px',
-      flexShrink: 0,
-    }}>
-      {/* Vertical divider */}
-      <div style={{
-        width: '1px',
-        height: '34px',
-        backgroundColor: 'rgba(255,255,255,0.2)',
-      }} />
+    <>
+      <style>{`
+        .ha-clock-divider { display: flex !important; }
+        .ha-clock-date { display: flex !important; }
+        @media (max-width: 480px) {
+          .ha-clock-divider { display: none !important; }
+          .ha-clock-date { display: none !important; }
+          .ha-clock-time { font-size: 16px !important; letter-spacing: 0.04em !important; }
+        }
+      `}</style>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
+        {/* Vertical divider — hidden on mobile */}
+        <div className="ha-clock-divider" style={{
+          width: '1px',
+          height: '34px',
+          backgroundColor: 'rgba(255,255,255,0.2)',
+        }} />
 
-      {/* Clock content */}
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-        {/* Time */}
-        <span style={{
-          color: 'white',
-          fontSize: '22px',
-          fontWeight: '300',
-          fontFamily: 'Georgia, serif',
-          letterSpacing: '0.06em',
-          lineHeight: 1,
-        }}>
-          {timeStr}
-        </span>
-        {/* Day + dot + Date */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-          <span style={{
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: '8.5px',
-            fontWeight: '600',
-            fontFamily: 'Helvetica, Arial, sans-serif',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
+        {/* Clock content */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+          {/* Time */}
+          <span className="ha-clock-time" style={{
+            color: 'white',
+            fontSize: '20px',
+            fontWeight: '300',
+            fontFamily: 'Georgia, serif',
+            letterSpacing: '0.06em',
+            lineHeight: 1,
           }}>
-            {dayStr}
+            {timeStr}
           </span>
-          <span style={{
-            width: '3px', height: '3px',
-            borderRadius: '50%',
-            backgroundColor: '#e8c97a',
-            display: 'inline-block',
-            flexShrink: 0,
-          }} />
-          <span style={{
-            color: 'rgba(255,255,255,0.5)',
-            fontSize: '8.5px',
-            fontWeight: '600',
-            fontFamily: 'Helvetica, Arial, sans-serif',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-          }}>
-            {dateStr}
-          </span>
+          {/* Date — hidden on mobile */}
+          <div className="ha-clock-date" style={{ alignItems: 'center', gap: '5px' }}>
+            <span style={{
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '8px',
+              fontWeight: '600',
+              fontFamily: 'Helvetica, Arial, sans-serif',
+              letterSpacing: '0.18em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}>
+              {dayStr}
+            </span>
+            <span style={{
+              width: '3px', height: '3px',
+              borderRadius: '50%',
+              backgroundColor: '#e8c97a',
+              display: 'inline-block',
+              flexShrink: 0,
+            }} />
+            <span style={{
+              color: 'rgba(255,255,255,0.5)',
+              fontSize: '8px',
+              fontWeight: '600',
+              fontFamily: 'Helvetica, Arial, sans-serif',
+              letterSpacing: '0.12em',
+              textTransform: 'uppercase',
+              whiteSpace: 'nowrap',
+            }}>
+              {dateStr}
+            </span>
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
 
@@ -164,7 +167,7 @@ export default function Navbar() {
           {/* Left: Wordmark */}
           <Link href="/" style={{ textDecoration: 'none', flex: 1 }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span style={{
+              <span className="ha-wordmark" style={{
                 display: 'block',
                 color: 'white',
                 fontWeight: '900',
@@ -363,6 +366,9 @@ export default function Navbar() {
           50% { opacity: 0.4; transform: scale(0.8); }
         }
         div::-webkit-scrollbar { display: none; }
+        @media (max-width: 480px) {
+          .ha-wordmark { font-size: 13px !important; letter-spacing: 0.08em !important; }
+        }
       `}</style>
     </header>
   );
