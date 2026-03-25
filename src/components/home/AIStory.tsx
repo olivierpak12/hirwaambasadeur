@@ -22,13 +22,13 @@ export default function AIStory() {
     if (!story) return '';
     switch (selectedLanguage) {
       case 'english':
-        return story.englishText;
+        return story.englishText || '';
       case 'kinyarwanda':
-        return story.kinyarwandaText;
+        return story.kinyarwandaText || story.englishText || ''; // Fallback to English if translation missing
       case 'french':
-        return story.frenchText;
+        return story.frenchText || story.englishText || ''; // Fallback to English if translation missing
       default:
-        return story.englishText;
+        return story.englishText || '';
     }
   };
 
