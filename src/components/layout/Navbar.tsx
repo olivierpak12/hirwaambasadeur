@@ -164,34 +164,77 @@ export default function Navbar() {
             )}
           </button>
 
-          {/* Left: Wordmark */}
+          {/* Left: Logo */}
           <Link href="/" style={{ textDecoration: 'none', flex: 1 }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-              <span className="ha-wordmark" style={{
-                display: 'block',
-                color: 'white',
-                fontWeight: '900',
-                fontSize: '18px',
-                letterSpacing: '0.12em',
-                fontFamily: 'Georgia, serif',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-                lineHeight: 1,
-              }}>
-                Hirwa Ambassadeur
-              </span>
-              <span style={{
-                display: 'block',
-                color: 'rgba(255,255,255,0.55)',
-                fontWeight: '500',
-                fontSize: '8px',
-                letterSpacing: '0.3em',
-                fontFamily: 'Helvetica, Arial, sans-serif',
-                textTransform: 'uppercase',
-                whiteSpace: 'nowrap',
-              }}>
-                Kigali · Rwanda
-              </span>
+            <div style={{ display: 'flex', alignItems: 'center', height: '60px' }}>
+              <svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" width="60" height="60" style={{ flexShrink: 0 }}>
+                <defs>
+                  <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#071428"/>
+                    <stop offset="100%" stopColor="#0D2247"/>
+                  </linearGradient>
+                  <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#BF8B30"/>
+                    <stop offset="40%" stopColor="#F5D680"/>
+                    <stop offset="100%" stopColor="#C9961F"/>
+                  </linearGradient>
+                  <linearGradient id="goldGrad2" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stopColor="#A0722A"/>
+                    <stop offset="50%" stopColor="#F0C84A"/>
+                    <stop offset="100%" stopColor="#BF8B30"/>
+                  </linearGradient>
+                  <filter id="glow">
+                    <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                  <filter id="softglow">
+                    <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+                    <feMerge>
+                      <feMergeNode in="coloredBlur"/>
+                      <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                  </filter>
+                </defs>
+
+                {/* Circular background */}
+                <circle cx="250" cy="250" r="245" fill="url(#bgGrad)"/>
+
+                {/* Outer ring border */}
+                <circle cx="250" cy="250" r="243" fill="none" stroke="url(#goldGrad)" strokeWidth="2"/>
+                <circle cx="250" cy="250" r="236" fill="none" stroke="url(#goldGrad)" strokeWidth="0.6" strokeOpacity="0.4"/>
+
+                {/* Globe icon (center, scaled up) */}
+                <circle cx="250" cy="185" r="62" fill="none" stroke="url(#goldGrad)" strokeWidth="2.2" filter="url(#glow)"/>
+                <ellipse cx="250" cy="185" rx="34" ry="62" fill="none" stroke="url(#goldGrad)" strokeWidth="1.6" strokeOpacity="0.85"/>
+                <line x1="188" y1="185" x2="312" y2="185" stroke="url(#goldGrad)" strokeWidth="1.3" strokeOpacity="0.7"/>
+                <circle cx="250" cy="123" r="5.5" fill="#F5D680" filter="url(#softglow)"/>
+                <circle cx="250" cy="123" r="11" fill="none" stroke="#F5D680" strokeWidth="1.2" strokeOpacity="0.55" filter="url(#glow)"/>
+                <circle cx="250" cy="123" r="18" fill="none" stroke="#F5D680" strokeWidth="0.8" strokeOpacity="0.28"/>
+
+                {/* Circular text - TOP ARC: HIRWA AMBASSADEUR */}
+                <path id="topArc" d="M 50,250 A 200,200 0 0,1 450,250" fill="none"/>
+                <text fontFamily="'Georgia', 'Times New Roman', serif" fontSize="26" fontWeight="700" letterSpacing="14" fill="url(#goldGrad)">
+                  <textPath href="#topArc" startOffset="50%" textAnchor="middle">HIRWA AMBASSADEUR</textPath>
+                </text>
+
+                {/* Circular text - BOTTOM ARC: tagline */}
+                <path id="bottomArc" d="M 60,260 A 190,190 0 0,0 440,260" fill="none"/>
+                <text fontFamily="'Georgia', 'Times New Roman', serif" fontSize="13.5" fontStyle="italic" letterSpacing="5" fill="#C9A84C" fillOpacity="0.85">
+                  <textPath href="#bottomArc" startOffset="50%" textAnchor="middle">L'information au cœur du monde</textPath>
+                </text>
+
+                {/* Center text */}
+                <line x1="170" y1="265" x2="330" y2="265" stroke="url(#goldGrad)" strokeWidth="0.8" strokeOpacity="0.5"/>
+                <text x="250" y="292" fontFamily="'Georgia', 'Times New Roman', serif" fontSize="13" letterSpacing="8" fill="#FFFFFF" fillOpacity="0.7" textAnchor="middle">· NEWS ·</text>
+                <line x1="170" y1="308" x2="330" y2="308" stroke="url(#goldGrad)" strokeWidth="0.8" strokeOpacity="0.5"/>
+                <text x="178" y="291" fontSize="9" fill="#F5D680" fillOpacity="0.6" textAnchor="middle">✦</text>
+                <text x="322" y="291" fontSize="9" fill="#F5D680" fillOpacity="0.6" textAnchor="middle">✦</text>
+                <circle cx="250" cy="7" r="3" fill="#F5D680" fillOpacity="0.5"/>
+                <circle cx="250" cy="493" r="3" fill="#F5D680" fillOpacity="0.5"/>
+              </svg>
             </div>
           </Link>
 
