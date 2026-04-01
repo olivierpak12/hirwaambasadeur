@@ -11,9 +11,8 @@ export default function AIStory() {
   const story = useQuery(api.aiStories.getLatestStory);
   const seedStory = useMutation(api.aiStories.seedInitialStory);
 
-  // Auto-seed initial story if none exists
   useEffect(() => {
-    if (story === null) { // null means query completed but no data
+    if (story === null) {
       seedStory().catch(console.error);
     }
   }, [story, seedStory]);
@@ -32,8 +31,6 @@ export default function AIStory() {
           return story.englishText;
       }
     })();
-    
-    console.log(`[AIStory] Language: ${selectedLanguage}, Text: ${text?.substring(0, 50)}`);
     return text || '';
   };
 
@@ -51,26 +48,32 @@ export default function AIStory() {
   if (!story) {
     return (
       <div style={{
-        backgroundColor: 'white',
-        border: '1px solid #e5e5e5',
-        borderRadius: '8px',
-        padding: '16px',
-        marginBottom: '16px',
+        backgroundColor: '#fff',
+        border: '1px solid #e8e2d4',
+        borderRadius: '6px',
+        padding: '20px',
+        marginBottom: '20px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
       }}>
         <div style={{
-          fontSize: '14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          fontSize: '13px',
           fontWeight: '600',
-          color: '#666',
-          marginBottom: '8px',
+          color: '#7a6a50',
+          letterSpacing: '0.05em',
+          textTransform: 'uppercase',
         }}>
-          🤖 AI Funny Story
+          ✨ Daily Story
         </div>
         <div style={{
           fontSize: '12px',
-          color: '#999',
+          color: '#a89a7a',
+          marginTop: '8px',
           fontStyle: 'italic',
         }}>
-          Loading today's story...
+          Loading today's exclusive story...
         </div>
       </div>
     );
@@ -78,92 +81,127 @@ export default function AIStory() {
 
   return (
     <div style={{
-      backgroundColor: 'white',
-      border: '1px solid #e5e5e5',
-      borderRadius: '8px',
-      padding: '16px',
-      marginBottom: '16px',
+      backgroundColor: '#fff',
+      border: '1px solid #e8e2d4',
+      borderRadius: '6px',
+      overflow: 'hidden',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+      marginBottom: '20px',
     }}>
+      {/* Header */}
       <div style={{
-        fontSize: '14px',
-        fontWeight: '600',
-        color: '#1a1a1a',
-        marginBottom: '12px',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '6px',
+        background: 'linear-gradient(135deg, #f8f5f0 0%, #faf8f3 100%)',
+        borderBottom: '1px solid #e8e2d4',
+        padding: '16px 20px',
       }}>
-        🤖 AI Funny Story
-        <span style={{
-          fontSize: '10px',
-          color: '#666',
-          fontWeight: '400',
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
         }}>
-          (Updated daily)
-        </span>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+          }}>
+            <span style={{ fontSize: '18px' }}>✨</span>
+            <div>
+              <div style={{
+                fontSize: '13px',
+                fontWeight: '700',
+                color: '#1a1a1a',
+                letterSpacing: '0.05em',
+                textTransform: 'uppercase',
+              }}>
+                Daily Story
+              </div>
+              <div style={{
+                fontSize: '10px',
+                color: '#9a8a6a',
+                marginTop: '2px',
+              }}>
+                Updated daily • AI-generated
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Language tabs */}
-      <div style={{ marginBottom: '12px' }}>
-        <div style={{
-          display: 'flex',
-          gap: '4px',
-          borderBottom: '1px solid #e5e5e5',
-          paddingBottom: '8px',
-        }}>
-          {(['english', 'kinyarwanda', 'french'] as Language[]).map((lang) => (
-            <button
-              key={lang}
-              onClick={() => setSelectedLanguage(lang)}
-              style={{
-                padding: '4px 8px',
-                fontSize: '11px',
-                fontWeight: '500',
-                backgroundColor: selectedLanguage === lang ? '#bb1919' : 'transparent',
-                color: selectedLanguage === lang ? 'white' : '#666',
-                border: selectedLanguage === lang ? 'none' : '1px solid #e5e5e5',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              {getLanguageLabel(lang)}
-            </button>
-          ))}
-        </div>
+      <div style={{
+        display: 'flex',
+        gap: '0',
+        borderBottom: '1px solid #e8e2d4',
+        padding: '0 20px',
+        background: '#faf8f3',
+      }}>
+        {(['english', 'kinyarwanda', 'french'] as Language[]).map((lang, i) => (
+          <button
+            key={lang}
+            onClick={() => setSelectedLanguage(lang)}
+            style={{
+              padding: '12px 16px',
+              fontSize: '12px',
+              fontWeight: selectedLanguage === lang ? '600' : '500',
+              backgroundColor: selectedLanguage === lang ? '#fff' : 'transparent',
+              color: selectedLanguage === lang ? '#bb1919' : '#9a8a6a',
+              border: 'none',
+              borderBottom: selectedLanguage === lang ? '2px solid #bb1919' : '2px solid transparent',
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              letterSpacing: '0.02em',
+              borderRight: i < 2 ? '1px solid #e8e2d4' : 'none',
+            }}
+          >
+            {getLanguageLabel(lang)}
+          </button>
+        ))}
       </div>
 
       {/* Story content */}
       <div style={{
-        fontSize: '13px',
-        lineHeight: '1.5',
-        color: '#333',
+        padding: '20px',
       }}>
-        {getStoryText()}
-      </div>
+        <div style={{
+          fontSize: '14px',
+          lineHeight: '1.8',
+          color: '#2a2218',
+          fontFamily: 'Georgia, "Times New Roman", serif',
+          fontWeight: '400',
+          letterSpacing: '0.3px',
+          marginBottom: '16px',
+          textAlign: 'justify',
+        }}>
+          {getStoryText()}
+        </div>
 
-      <div style={{
-        marginTop: '8px',
-        fontSize: '10px',
-        color: '#999',
-        textAlign: 'right',
-      }}>
-        Generated {new Date(story.generatedAt).toLocaleDateString()}
-      </div>
-
-      {/* Debug info - remove in production */}
-      <div style={{
-        marginTop: '12px',
-        fontSize: '9px',
-        color: '#ccc',
-        borderTop: '1px solid #eee',
-        paddingTop: '8px',
-        fontFamily: 'monospace',
-        maxHeight: '60px',
-        overflow: 'auto',
-      }}>
-        <div>eng: {story.englishText?.substring(0, 30)}...</div>
-        <div>kin: {story.kinyarwandaText?.substring(0, 30)}...</div>
-        <div>fr: {story.frenchText?.substring(0, 30)}...</div>
+        <div style={{
+          fontSize: '11px',
+          color: '#a89a7a',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          paddingTop: '12px',
+          borderTop: '1px solid #e8e2d4',
+        }}>
+          <span>Generated {new Date(story.generatedAt).toLocaleDateString('en-US', { 
+            month: 'short', 
+            day: 'numeric', 
+            year: 'numeric' 
+          })}</span>
+          <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            fontSize: '10px',
+            backgroundColor: '#f0ede4',
+            padding: '4px 8px',
+            borderRadius: '3px',
+            color: '#8a6a2a',
+          }}>
+            ✓ Verified
+          </span>
+        </div>
       </div>
     </div>
   );
