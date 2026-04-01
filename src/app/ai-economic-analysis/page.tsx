@@ -59,7 +59,8 @@ export default function AIEconomicAnalysisPage() {
   // Query with explicit loading state handling
   const allAnalysesData = useQuery(economicApi.getLatestAnalyses);
   const isLoading = allAnalysesData === undefined;
-  const allAnalyses = (allAnalysesData as EconomicAnalysis[] | undefined) ?? [];
+  const isError = allAnalysesData === null || (Array.isArray(allAnalysesData) && allAnalysesData.length === 0);
+  const allAnalyses = (Array.isArray(allAnalysesData) ? allAnalysesData : []) as EconomicAnalysis[];
   
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedAnalysis, setSelectedAnalysis] = useState<string | null>(null);
