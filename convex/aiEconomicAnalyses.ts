@@ -4,31 +4,42 @@ import { v } from 'convex/values';
 
 export const getLatestAnalyses = query({
   handler: async (ctx) => {
-    const all = await ctx.db
-      .query('aiEconomicAnalyses')
-      .filter((q) => q.eq(q.field('published'), true))
-      .order('desc')
-      .collect();
-    return all.slice(0, 50);
+    try {
+      const all = await ctx.db
+        .query('aiEconomicAnalyses')
+        .filter((q) => q.eq(q.field('published'), true))
+        .order('desc')
+        .collect();
+      return all.slice(0, 50) || [];
+    } catch (error) {
+      console.error('Error fetching latest analyses:', error);
+      // Return empty array as fallback to prevent app crash
+      return [];
+    }
   },
 });
 
 export const searchAnalyses = query({
   args: { term: v.string() },
   handler: async (ctx, { term }) => {
-    const normalized = term.trim().toLowerCase();
-    if (!normalized) return [];
+    try {
+      const normalized = term.trim().toLowerCase();
+      if (!normalized) return [];
 
-    const all = await ctx.db
-      .query('aiEconomicAnalyses')
-      .filter((q) => q.eq(q.field('published'), true))
-      .order('desc')
-      .collect();
+      const all = await ctx.db
+        .query('aiEconomicAnalyses')
+        .filter((q) => q.eq(q.field('published'), true))
+        .order('desc')
+        .collect();
 
-    return all.slice(0, 200).filter((item: any) => {
-      const haystack = `${item.title} ${item.summary} ${item.content}`.toLowerCase();
-      return haystack.includes(normalized);
-    });
+      return all.slice(0, 200).filter((item: any) => {
+        const haystack = `${item.title || ''} ${item.summary || ''} ${item.content || ''}`.toLowerCase();
+        return haystack.includes(normalized);
+      });
+    } catch (error) {
+      console.error('Error searching analyses:', error);
+      return [];
+    }
   },
 });
 
