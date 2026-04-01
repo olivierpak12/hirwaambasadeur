@@ -140,6 +140,14 @@ export default function AdminPage() {
               textDecoration: 'none',
               borderRadius: '4px',
             }}>Jobs</a>
+            <a href="/admin/ai-economic-analysis" style={{
+              display: 'inline-block',
+              padding: '10px 20px',
+              backgroundColor: '#bb1919',
+              color: 'white',
+              textDecoration: 'none',
+              borderRadius: '4px',
+            }}>AI Econ Analyses</a>
             <button
               onClick={handleClearAndRegenerate}
               style={{

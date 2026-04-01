@@ -401,7 +401,10 @@ export const getLatestArticles = query({
 
 export const getTickerTitles = query({
   args: {},
-  returns: v.array(v.string()),
+  returns: v.array(v.object({
+    title: v.string(),
+    slug: v.string(),
+  })),
   handler: async (ctx) => {
     try {
       const articles = await ctx.db
@@ -410,20 +413,29 @@ export const getTickerTitles = query({
         .order('desc')
         .take(5); // Get latest 5 articles for ticker
 
-      const titles = articles
-        .filter((article) => article && typeof article.title === 'string' && article.title.trim().length > 0)
-        .map((article) => article.title.trim());
+      const items = articles
+        .filter((article) =>
+          article &&
+          typeof article.title === 'string' &&
+          article.title.trim().length > 0 &&
+          typeof article.slug === 'string' &&
+          article.slug.trim().length > 0
+        )
+        .map((article) => ({
+          title: article.title.trim(),
+          slug: article.slug.trim(),
+        }));
 
       // Guard for missing data (older entries or malformed records)
-      if (titles.length === 0) {
-        return ['No headlines available'];
+      if (items.length === 0) {
+        return [{ title: 'No headlines available', slug: '/' }];
       }
 
-      return titles;
+      return items;
     } catch (error) {
       console.error('Error in getTickerTitles:', error);
       // Return fallback on any error
-      return ['Headlines temporarily unavailable'];
+      return [{ title: 'Headlines temporarily unavailable', slug: '/' }];
     }
   },
 });

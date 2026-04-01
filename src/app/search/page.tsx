@@ -17,18 +17,44 @@ function SearchContent() {
   }, [query]);
 
   const articles = useQuery(api.articles.getPublishedArticles) ?? [];
+  const economicAnalyses = useQuery(((api as unknown) as Record<string, any>).aiEconomicAnalyses?.getLatestAnalyses) ?? [];
   const loading = articles === undefined;
 
   const results = useMemo(() => {
     const term = searchQuery.trim().toLowerCase();
     if (!term) return [];
-    return articles.filter((article: any) => {
+
+    // Search articles
+    const articleResults = articles.filter((article: any) => {
       const title = (article.title ?? '').toLowerCase();
       const excerpt = (article.excerpt ?? '').toLowerCase();
       const category = (article.category?.name ?? '').toLowerCase();
       return title.includes(term) || excerpt.includes(term) || category.includes(term);
-    });
-  }, [articles, searchQuery]);
+    }).map((article: any) => ({
+      ...article,
+      type: 'article',
+      url: `/article/${article.slug}`,
+    }));
+
+    // Search economic analyses
+    const analysisResults = economicAnalyses.filter((analysis: any) => {
+      const title = (analysis.title ?? '').toLowerCase();
+      const summary = (analysis.summary ?? '').toLowerCase();
+      const content = (analysis.content ?? '').toLowerCase();
+      const tags = (analysis.tags ?? []).join(' ').toLowerCase();
+      return title.includes(term) || summary.includes(term) || content.includes(term) || tags.includes(term);
+    }).map((analysis: any) => ({
+      ...analysis,
+      type: 'economic-analysis',
+      url: `/ai-economic-analysis#${analysis._id}`,
+      excerpt: analysis.summary,
+      category: { name: analysis.metadata?.category || 'Economic Analysis' },
+      author: { name: 'AI Economic Engine' },
+      publishedAt: analysis.createdAt,
+    }));
+
+    return [...articleResults, ...analysisResults];
+  }, [articles, economicAnalyses, searchQuery]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +72,7 @@ function SearchContent() {
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search articles, categories, keywords..."
+            placeholder="Search articles, economic analyses, categories, keywords..."
             className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-600"
           />
           <button
@@ -77,27 +103,41 @@ function SearchContent() {
 
           {results.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto mb-12">
-              {results.map((article: any) => (
-                <Link key={article._id} href={`/article/${article.slug}`}>
+              {results.map((item: any) => (
+                <Link key={`${item.type}-${item._id}`} href={item.url}>
                   <div className="bg-white rounded-lg overflow-hidden shadow hover:shadow-lg transition cursor-pointer h-full flex flex-col">
-                    {article.featuredImage && (
+                    {item.featuredImage && (
                       <div className="h-48 w-full overflow-hidden bg-gray-100">
-                        <img src={article.featuredImage} alt={article.title} className="w-full h-full object-cover" />
+                        <img src={item.featuredImage} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    {!item.featuredImage && item.imageUrl && (
+                      <div className="h-48 w-full overflow-hidden bg-gray-100">
+                        <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
                       </div>
                     )}
                     <div className="p-4 flex-1 flex flex-col">
-                      <p className="text-xs text-gray-800 font-bold mb-2 uppercase">
-                        {article.category?.name}
-                      </p>
+                      <div className="flex items-center gap-2 mb-2">
+                        <p className="text-xs text-gray-800 font-bold uppercase">
+                          {item.category?.name}
+                        </p>
+                        <span className={`text-xs px-2 py-1 rounded ${
+                          item.type === 'economic-analysis'
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-gray-100 text-gray-800'
+                        }`}>
+                          {item.type === 'economic-analysis' ? 'AI Analysis' : 'Article'}
+                        </span>
+                      </div>
                       <h3 className="font-bold text-lg mb-2 line-clamp-2 flex-1 text-black">
-                        {article.title}
+                        {item.title}
                       </h3>
                       <p className="text-sm text-black mb-4 line-clamp-2">
-                        {article.excerpt}
+                        {item.excerpt}
                       </p>
                       <div className="flex justify-between items-center text-xs text-black border-t pt-3">
-                        <span>{article.author?.name}</span>
-                        <span>{new Date(article.publishedAt).toLocaleDateString()}</span>
+                        <span>{item.author?.name}</span>
+                        <span>{new Date(item.publishedAt || item.createdAt).toLocaleDateString()}</span>
                       </div>
                     </div>
                   </div>
@@ -113,7 +153,7 @@ function SearchContent() {
         <div className="max-w-2xl mx-auto mb-12">
           <h2 className="text-2xl font-bold mb-6 text-black">Popular Searches</h2>
           <div className="flex flex-wrap gap-3">
-            {['Politics', 'Technology', 'Business', 'AI', 'Markets', 'Health'].map((term) => (
+            {['Politics', 'Technology', 'Business', 'AI', 'Markets', 'Health', 'Inflation', 'GDP', 'Trade', 'Cryptocurrency'].map((term) => (
               <button
                 key={term}
                 onClick={() => {

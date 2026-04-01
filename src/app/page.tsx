@@ -4,6 +4,7 @@ import FeaturedArticles from '@/components/home/FeaturedArticles';
 import LatestNews from '@/components/home/LatestNews';
 import TrendingArticles from '@/components/home/TrendingArticles';
 import AIStory from '@/components/home/AIStory';
+import AIEconomicAnalyses from '@/components/home/AIEconomicAnalyses';
 import { HeaderAd } from '@/components/common/AdPlacements';
 
 const Newsletter = dynamic(() => import('@/components/home/Newsletter'));
@@ -112,6 +113,9 @@ export default function Home() {
 
               {/* AI Story Section */}
               <AIStory />
+
+              {/* AI Economic Analyses Section */}
+              <AIEconomicAnalyses />
             </div>
           </div>
         </div>

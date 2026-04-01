@@ -2,6 +2,7 @@
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import React from "react";
+import { Web3Provider } from "./Web3Provider";
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -12,7 +13,9 @@ export default function ConvexClientProvider({
 }) {
   return (
     <ConvexProvider client={convex}>
-      {children}
+      <Web3Provider>
+        {children}
+      </Web3Provider>
     </ConvexProvider>
   );
 }

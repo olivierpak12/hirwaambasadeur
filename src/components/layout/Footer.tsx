@@ -174,7 +174,7 @@ export default function Footer() {
             {/* Link columns */}
             {footerSections.map(section => (
               <div key={section.title}>
-                <div style={{
+                <div suppressHydrationWarning style={{
                   fontSize: 11, fontWeight: 800, color: '#c9a84c',
                   letterSpacing: '0.14em', textTransform: 'uppercase',
                   marginBottom: 16, paddingBottom: 10,

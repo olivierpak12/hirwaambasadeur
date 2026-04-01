@@ -49,6 +49,7 @@ export default function Header() {
  <Link href = "/categories/politics" className="text-gra y-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-900 transition pb-1">Politics</Link>
  <Link href = "/categories/business" className="text-gra y-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-900 transition pb-1">Business</Link>
  <Link href = "/categories/technology" className="text-gra y-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-900 transition pb-1">Tech</Link>
+ <Link href = "/ai-economic-analysis" className="text-gra y-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-900 transition pb-1">AI Economy</Link>
  <Link href = "/search" className="text-gra y-700 hover:text-gray-900 hover:border-b-2 hover:border-gray-900 transition pb-1">Search</Link>
  </nav>
 
@@ -72,6 +73,7 @@ export default function Header() {
  <Link href = "/categories/technology" className="text-gra y-700 hover:text-gray-900 transition">Technology</Link>
  <Link href = "/categories/health" className="text-gra y-700 hover:text-gray-900 transition">Health</Link>
  <Link href = "/categories/sports" className="text-gra y-700 hover:text-gray-900 transition">Sports</Link>
+ <Link href = "/ai-economic-analysis" className="text-gra y-700 hover:text-gray-900 transition">AI Economy</Link>
  <Link href = "/search" className="text-gra y-700 hover:text-gray-900 transition">Search</Link>
  {isAdminLoggedIn && (
  <>
@@ -95,6 +97,7 @@ export default function Header() {
  <Link href = "/categories/entertainment" className="hove r:text-gray-900 transition">Entertainment</Link>
  <Link href = "/categories/health" className="hove r:text-gray-900 transition">Health</Link>
  <Link href = "/categories/sports" className="hove r:text-gray-900 transition">Sports</Link>
+ <Link href = "/ai-economic-analysis" className="hove r:text-gray-900 transition">AI Economy</Link>
  </div>
  </div>
  </div>

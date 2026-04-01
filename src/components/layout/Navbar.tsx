@@ -61,27 +61,29 @@ function LiveClock() {
 }
 
 export default function Navbar() {
-  const tickerTitles = useQuery(api.articles.getTickerTitles);
+  const tickerItems = useQuery(api.articles.getTickerTitles);
   const [menuOpen, setMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Top Stories');
   const [tickerIndex, setTickerIndex] = useState(0);
   const [tickerVisible, setTickerVisible] = useState(true);
 
-  useEffect(() => {
-    if (tickerTitles && tickerIndex >= tickerTitles.length) setTickerIndex(0);
-  }, [tickerTitles, tickerIndex]);
+  const currentTickerItem = tickerItems && tickerItems.length > 0 ? tickerItems[tickerIndex] : null;
 
   useEffect(() => {
-    if (!tickerTitles || tickerTitles.length === 0) return;
+    if (tickerItems && tickerIndex >= tickerItems.length) setTickerIndex(0);
+  }, [tickerItems, tickerIndex]);
+
+  useEffect(() => {
+    if (!tickerItems || tickerItems.length === 0) return;
     const id = setInterval(() => {
       setTickerVisible(false);
       setTimeout(() => {
-        setTickerIndex((i) => (i + 1) % tickerTitles.length);
+        setTickerIndex((i) => (i + 1) % tickerItems.length);
         setTickerVisible(true);
       }, 300);
     }, 4000);
     return () => clearInterval(id);
-  }, [tickerTitles]);
+  }, [tickerItems]);
 
   return (
     <>
@@ -224,6 +226,11 @@ export default function Navbar() {
           letter-spacing: 0.14em;
           flex-shrink: 0;
           font-family: Helvetica, Arial, sans-serif;
+          cursor: pointer;
+          transition: color 0.15s ease;
+        }
+        .ha-live-label:hover {
+          color: #e8c97a;
         }
         .ha-ticker-sep { width: 1px; height: 14px; background: #333; flex-shrink: 0; }
         .ha-ticker-text {
@@ -421,32 +428,45 @@ export default function Navbar() {
         </div>
 
         {/* ── Live ticker ── */}
-        {tickerTitles && tickerTitles.length > 0 && (
-          <div className="ha-ticker">
-            <div className="ha-ticker-inner">
-              <span className="ha-live-dot" />
-              <span className="ha-live-label">LIVE</span>
-              <div className="ha-ticker-sep" />
-              <span
+        <div className="ha-ticker">
+          <div className="ha-ticker-inner">
+            <span className="ha-live-dot" />
+            <Link
+              href={currentTickerItem ? `/article/${currentTickerItem.slug}` : '/'}
+              className="ha-live-label"
+              style={{ textDecoration: 'none' }}
+            >
+              LIVE
+            </Link>
+            <div className="ha-ticker-sep" />
+            {tickerItems === undefined ? (
+              <span className="ha-ticker-text" style={{ color: '#ddd' }}>Loading live headlines...</span>
+            ) : tickerItems.length === 0 ? (
+              <span className="ha-ticker-text" style={{ color: '#ddd' }}>No headlines available</span>
+            ) : currentTickerItem ? (
+              <Link
+                href={`/article/${currentTickerItem.slug}`}
                 className="ha-ticker-text"
-                style={{ opacity: tickerVisible ? 1 : 0 }}
+                style={{ opacity: tickerVisible ? 1 : 0, color: 'rgba(255,255,255,0.9)', textDecoration: 'none' }}
               >
-                {tickerTitles[tickerIndex]}
-              </span>
-              <div className="ha-ticker-dots">
-                {tickerTitles.map((_, i) => (
-                  <button
-                    key={i}
-                    className="ha-ticker-dot"
-                    onClick={() => { setTickerIndex(i); setTickerVisible(true); }}
-                    style={{ backgroundColor: i === tickerIndex ? 'white' : 'rgba(255,255,255,0.28)' }}
-                    aria-label={`Ticker item ${i + 1}`}
-                  />
-                ))}
-              </div>
+                {currentTickerItem.title}
+              </Link>
+            ) : (
+              <span className="ha-ticker-text" style={{ color: '#ddd' }}>No headlines available</span>
+            )}
+            <div className="ha-ticker-dots">
+              {(tickerItems ?? []).map((_, i) => (
+                <button
+                  key={i}
+                  className="ha-ticker-dot"
+                  onClick={() => { setTickerIndex(i); setTickerVisible(true); }}
+                  style={{ backgroundColor: i === tickerIndex ? 'white' : 'rgba(255,255,255,0.28)' }}
+                  aria-label={`Ticker item ${i + 1}`}
+                />
+              ))}
             </div>
           </div>
-        )}
+        </div>
 
         {/* ── Mobile drawer ── */}
         {menuOpen && (

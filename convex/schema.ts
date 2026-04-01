@@ -188,4 +188,36 @@ export default defineSchema({
     generatedAt: v.string(),
     isActive: v.boolean(),
   }).index('by_active', ['isActive']),
+
+  // AI Economic Analyses
+  aiEconomicAnalyses: defineTable({
+    title: v.string(),
+    summary: v.string(),
+    content: v.string(),
+    header: v.optional(v.string()),
+    sections: v.optional(v.array(v.object({
+      title: v.string(),
+      content: v.string(),
+    }))),
+    conclusion: v.optional(v.string()),
+    images: v.optional(v.array(v.object({
+      url: v.string(),
+      caption: v.optional(v.string()),
+      alt: v.optional(v.string()),
+    }))),
+    imageUrl: v.optional(v.string()),
+    source: v.optional(v.string()),
+    authorId: v.optional(v.id('authors')),
+    tags: v.optional(v.array(v.string())),
+    metadata: v.optional(v.object({
+      confidence: v.optional(v.number()),
+      model: v.optional(v.string()),
+      generatedAt: v.optional(v.string()),
+      region: v.optional(v.string()),
+      category: v.optional(v.string()),
+    })),
+    createdAt: v.string(),
+    updatedAt: v.optional(v.string()),
+    published: v.boolean(),
+  }).index('by_published', ['published']).index('by_author', ['authorId']),
 });
