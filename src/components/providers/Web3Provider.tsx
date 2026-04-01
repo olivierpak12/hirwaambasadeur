@@ -28,7 +28,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
   });
 
   // Check if MetaMask is available
-  const hasMetaMask = typeof window !== 'undefined' && window.ethereum !== undefined;
+  const hasMetaMask = typeof window !== 'undefined' && (window as any).ethereum !== undefined;
 
   // Connect to wallet
   const connect = async () => {
@@ -43,7 +43,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     setWallet((prev) => ({ ...prev, isConnecting: true, error: null }));
 
     try {
-      const ethereum = window.ethereum as any;
+      const ethereum = (window as any).ethereum as any;
 
       // Request account access
       const accounts = await ethereum.request({
@@ -103,7 +103,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const ethereum = window.ethereum as any;
+      const ethereum = (window as any).ethereum as any;
       await ethereum.request({
         method: 'wallet_switchEthereumChain',
         params: [{ chainId: `0x${chainId.toString(16)}` }],
@@ -130,7 +130,7 @@ export function Web3Provider({ children }: { children: ReactNode }) {
 
     // Listen for account changes
     if (hasMetaMask) {
-      const ethereum = window.ethereum as any;
+      const ethereum = (window as any).ethereum as any;
 
       const handleAccountsChanged = (accounts: string[]) => {
         if (accounts.length === 0) {

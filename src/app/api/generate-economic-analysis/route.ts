@@ -61,8 +61,9 @@ export async function POST(request: Request) {
       console.log('Convex action completed, result:', analysis);
     } catch (convexError) {
       console.error('Convex action error:', convexError);
+      const convexErrorMessage = convexError instanceof Error ? convexError.message : String(convexError);
       return Response.json(
-        { error: 'Failed to generate analysis', details: convexError.message },
+        { error: 'Failed to generate analysis', details: convexErrorMessage },
         { status: 500 }
       );
     }
@@ -80,8 +81,9 @@ export async function POST(request: Request) {
     );
   } catch (error) {
     console.error('Unexpected error:', error);
+    const message = error instanceof Error ? error.message : String(error);
     return Response.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: message },
       { status: 500 }
     );
   }

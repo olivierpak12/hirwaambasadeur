@@ -534,7 +534,17 @@ function smartJsonParse(input: string, context: string = ''): any {
         ].filter(t => t.length > 0);
       }
 
-      const extracted = {
+      const extracted: {
+        title: string;
+        summary: string;
+        content: string;
+        imageUrl?: string;
+        images: Array<{ url: string; caption?: string; alt?: string }>;
+        tags: string[];
+        region: string;
+        category: string;
+        confidence: number;
+      } = {
         title: titleMatch[1] || 'AI Analysis',
         summary: summaryMatch[1] || 'Analysis summary',
         content: contentMatch[1] || 'Analysis content',

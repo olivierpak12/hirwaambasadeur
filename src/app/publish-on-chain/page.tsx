@@ -33,12 +33,12 @@ export default function PublishOnChainPage() {
 
     try {
       // Check if we have ethereum object
-      if (!window.ethereum) {
+      if (!(window as any).ethereum) {
         throw new Error('MetaMask is not available');
       }
 
       // Get provider and signer
-      const provider = new ethers.BrowserProvider(window.ethereum);
+      const provider = new ethers.BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
 
       // For demo: we'll just show what would be sent
