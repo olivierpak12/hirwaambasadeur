@@ -24,12 +24,22 @@ export default function AuthorLoginPage() {
       
       if (result.success && result.authorId) {
         // Store author session
-        localStorage.setItem('authorToken', 'token_' + Date.now());
+        const token = 'token_' + Date.now();
+        localStorage.setItem('authorToken', token);
         localStorage.setItem('authorId', String(result.authorId));
         localStorage.setItem('authorEmail', result.email || '');
         localStorage.setItem('authorName', result.name || '');
-        
-        router.push('/dashboard/author');
+
+        // Also set cookie so middleware can validate author dashboard routes
+        const maxAge = 30 * 24 * 60 * 60; // 30 days
+        document.cookie = `authorToken=${token}; path=/; max-age=${maxAge}`;
+        document.cookie = `authorEmail=${encodeURIComponent(result.email || '')}; path=/; max-age=${maxAge}`;
+        document.cookie = `authorName=${encodeURIComponent(result.name || '')}; path=/; max-age=${maxAge}`;
+
+        // Preserve possible redirect from query param
+        const urlParams = new URLSearchParams(window.location.search);
+        const from = urlParams.get('from');
+        router.push(from && from.startsWith('/dashboard') ? from : '/dashboard/author');
       } else {
         setError(result.message || 'Login failed. Please check your credentials.');
       }
