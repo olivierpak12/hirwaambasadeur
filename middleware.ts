@@ -1,26 +1,40 @@
 import { NextRequest, NextResponse } from 'next/server';
 
-// List of protected admin routes
-const protectedRoutes = [
+// Protected route checks
+const adminProtectedRoutes = [
   '/admin',
-  '/dashboard',
+  '/dashboard/admin',
+];
+
+const authorProtectedRoutes = [
+  '/dashboard/author',
 ];
 
 export function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
-  // Check if the route is protected
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
-
-  if (isProtectedRoute) {
+  // Admin-only routes
+  const isAdminRoute = adminProtectedRoutes.some((route) => pathname.startsWith(route));
+  if (isAdminRoute) {
     const token = request.cookies.get('adminToken')?.value;
-
     if (!token) {
-      // Redirect to login if no token
       const loginUrl = new URL('/auth/login', request.url);
       loginUrl.searchParams.set('from', pathname);
       return NextResponse.redirect(loginUrl);
     }
+    return NextResponse.next();
+  }
+
+  // Author-only routes
+  const isAuthorRoute = authorProtectedRoutes.some((route) => pathname.startsWith(route));
+  if (isAuthorRoute) {
+    const token = request.cookies.get('authorToken')?.value;
+    if (!token) {
+      const loginUrl = new URL('/author/login', request.url);
+      loginUrl.searchParams.set('from', pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+    return NextResponse.next();
   }
 
   return NextResponse.next();
