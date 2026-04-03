@@ -45,7 +45,7 @@ export const login = mutation({
     // Find admin by email
     const admin = await ctx.db
       .query('admins')
-      .withIndex('by_email', (q) => q.eq('email', args.email.toLowerCase()))
+      .withIndex('by_email', (q) => q.eq('email', args.email.trim().toLowerCase()))
       .first();
 
     if (!admin || !admin.isActive) {
@@ -53,7 +53,7 @@ export const login = mutation({
     }
 
     // Verify password
-    if (!(await verifyPassword(args.password, admin.passwordHash))) {
+    if (!(await verifyPassword(args.password.trim(), admin.passwordHash))) {
       throw new Error('Invalid email or password');
     }
 
@@ -295,6 +295,22 @@ export const listAdmins = query({
       isActive: a.isActive,
       lastLogin: a.lastLogin,
       createdAt: a.createdAt,
+    }));
+  },
+});
+
+/**
+ * Debug query to check admins
+ */
+export const debugAdmins = query({
+  args: {},
+  handler: async (ctx) => {
+    const admins = await ctx.db.query('admins').collect();
+    return admins.map((a) => ({
+      email: a.email,
+      name: a.name,
+      isActive: a.isActive,
+      hasPassword: !!a.passwordHash,
     }));
   },
 });
