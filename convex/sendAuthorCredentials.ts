@@ -87,7 +87,7 @@ export const sendAuthorCredentials = action({
       </p>
     </div>
     <div class="footer">
-      <p>© 2024 Hirwa Ambassadeur - Professional News Platform</p>
+      <p>© 2026 Hirwa Ambassadeur - Professional News Platform</p>
       <p>If you did not request this account, please contact our support team.</p>
     </div>
   </div>
@@ -108,7 +108,7 @@ You can log in at: ${loginUrl}
 
 Security Tip: Please change your password after your first login. Do not share these credentials with anyone.
 
-© 2024 Hirwa Ambassadeur - Professional News Platform
+© 2026 Hirwa Ambassadeur - Professional News Platform
     `;
 
     try {
