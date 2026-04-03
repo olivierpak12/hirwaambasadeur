@@ -45,7 +45,7 @@ export const sendAuthorCredentials = action({
     }
 
     const from = process.env.EMAIL_FROM || `no-reply@hirwaambassadeur.com`;
-    const loginUrl = `${process.env.APP_URL || 'http://localhost:3000'}/author/login`;
+    const loginUrl = `${process.env.APP_URL || 'https://hirwaambassadeur.com'}/author/login`;
     const subject = 'Your Hirwa Ambassadeur Author Account Credentials';
     const htmlContent = `
 <!DOCTYPE html>
