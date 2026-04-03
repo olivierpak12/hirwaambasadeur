@@ -6,6 +6,7 @@ export default defineSchema({
   authors: defineTable({
     name: v.string(),
     email: v.string(),
+    password: v.optional(v.string()), // Hashed password
     bio: v.string(),
     photo: v.optional(v.string()),
     photoStorageId: v.optional(v.id('_storage')),

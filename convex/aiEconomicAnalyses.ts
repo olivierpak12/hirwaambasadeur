@@ -3,23 +3,20 @@ import { api } from './_generated/api';
 import { v } from 'convex/values';
 
 export const getLatestAnalyses = query({
+  args: {},
   handler: async (ctx) => {
     try {
-      // Simplified query without complex filters to avoid backend errors
-      const all = await ctx.db.query('aiEconomicAnalyses').collect();
+      // Query published analyses and sort them by creation date
+      const all = await ctx.db
+        .query('aiEconomicAnalyses')
+        .filter((q) => q.eq(q.field('published'), true))
+        .order('desc')
+        .collect();
       
-      // Filter and sort in code instead of in query
-      const published = all.filter((item: any) => item.published === true);
-      const sorted = published.sort((a: any, b: any) => {
-        const dateA = new Date(a.createdAt || 0).getTime();
-        const dateB = new Date(b.createdAt || 0).getTime();
-        return dateB - dateA; // descending
-      });
-      
-      return sorted.slice(0, 50) || [];
+      return all.slice(0, 50);
     } catch (error) {
       console.error('Error fetching latest analyses:', error);
-      // Return safe empty array on any error
+      // Return empty array on error
       return [];
     }
   },

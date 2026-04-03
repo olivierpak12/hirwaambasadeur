@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
 import ImageUpload from '@/components/common/ImageUpload';
 
@@ -24,6 +24,8 @@ export default function JournalistsAdminPage() {
   // Form states for creation
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [sendCredentialsEmail, setSendCredentialsEmail] = useState(true);
   const [bio, setBio] = useState('');
   const [canCreateArticles, setCanCreateArticles] = useState(true);
   const [canEditPhotos, setCanEditPhotos] = useState(false);
@@ -49,6 +51,7 @@ export default function JournalistsAdminPage() {
   const createAuthor = useMutation(api.authors.createAuthor);
   const updateAuthor = useMutation(api.authors.updateAuthor);
   const deleteAuthor = useMutation(api.authors.deleteAuthor);
+  const sendAuthorCredentials = useAction(api.sendAuthorCredentials.sendAuthorCredentials);
 
   // Check authentication on mount
   useEffect(() => {
@@ -70,18 +73,39 @@ export default function JournalistsAdminPage() {
       return;
     }
 
+    if (!password.trim()) {
+      setError('Please enter a password for the author.');
+      return;
+    }
+
     setError('');
     setSaving(true);
 
     try {
-      await createAuthor({
+      const result = await createAuthor({
         name,
         email,
+        password,
         bio,
         canCreateArticles,
         canEditPhotos,
         photoStorageId: profilePhotoStorageId ? (profilePhotoStorageId as any) : undefined,
+        sendCredentialsEmail,
       });
+
+      // Send credentials email if requested
+      if (result.sendCredentialsEmail && result.password) {
+        try {
+          await sendAuthorCredentials({
+            email: result.email,
+            name: result.name,
+            password: result.password,
+          });
+        } catch (emailErr) {
+          console.error('Failed to send credentials email:', emailErr);
+          // Don't fail the creation if email fails
+        }
+      }
 
       setSaved(true);
       setTimeout(() => setSaved(false), 3000);
@@ -89,6 +113,8 @@ export default function JournalistsAdminPage() {
       // Reset form
       setName('');
       setEmail('');
+      setPassword('');
+      setSendCredentialsEmail(true);
       setBio('');
       setCanCreateArticles(true);
       setCanEditPhotos(false);
@@ -531,6 +557,34 @@ export default function JournalistsAdminPage() {
                   onFocus={onFocus}
                   onBlur={onBlur}
                 />
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20, marginBottom: 20 }}>
+              <div>
+                <Label>Password *</Label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Enter a secure password"
+                  style={fieldStyle}
+                  onFocus={onFocus}
+                  onBlur={onBlur}
+                />
+              </div>
+              <div style={{ display: 'flex', alignItems: 'flex-end' }}>
+                <label style={{ display: 'flex', gap: 8, alignItems: 'center', cursor: 'pointer', flex: 1 }}>
+                  <input
+                    type="checkbox"
+                    checked={sendCredentialsEmail}
+                    onChange={(e) => setSendCredentialsEmail(e.target.checked)}
+                    style={{ cursor: 'pointer', width: 18, height: 18 }}
+                  />
+                  <span style={{ fontSize: 14, color: '#e8dfc8' }}>
+                    Send credentials via email
+                  </span>
+                </label>
               </div>
             </div>
 

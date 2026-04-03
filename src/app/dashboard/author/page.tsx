@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useMutation, useQuery } from 'convex/react';
+import { useMutation, useQuery, useAction } from 'convex/react';
 import { api } from '@/convex/_generated/api';
+import ImageUpload from '@/components/common/ImageUpload';
 
 export default function AuthorDashboard() {
   const router = useRouter();
@@ -18,13 +19,20 @@ export default function AuthorDashboard() {
   const [content, setContent] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [status, setStatus] = useState<'draft' | 'published'>('draft');
+  const [featuredImage, setFeaturedImage] = useState('');
+  const [featuredImageStorageId, setFeaturedImageStorageId] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState('');
 
   // Queries and mutations
   const categories = useQuery(api.categories.getAllCategories);
-  const authorArticles = authorId ? useQuery(api.articles.getAuthorArticles, { authorId: authorId as any }) : null;
+  // Always call the hook - pass 'skip' when authorId is not available (fixes hook order)
+  const authorArticles = useQuery(
+    api.articles.getAuthorArticles, 
+    authorId ? { authorId: authorId as any } : 'skip'
+  ) as any;
   const createArticle = useMutation(api.articles.createArticle);
 
   // Check authentication on mount
@@ -70,6 +78,8 @@ export default function AuthorDashboard() {
         authorId: authorId as any,
         status,
         featured: false,
+        featuredImageIds: featuredImageStorageId ? [featuredImageStorageId as any] : undefined,
+        youtubeUrl: youtubeUrl.trim() || undefined,
       });
 
       setSaved(true);
@@ -81,6 +91,9 @@ export default function AuthorDashboard() {
       setContent('');
       setCategoryId('');
       setStatus('draft');
+      setFeaturedImage('');
+      setFeaturedImageStorageId('');
+      setYoutubeUrl('');
       setActiveTab('articles');
     } catch (err) {
       setError('Failed to create article. Please try again.');
@@ -287,6 +300,50 @@ export default function AuthorDashboard() {
                 value={excerpt}
                 onChange={(e) => setExcerpt(e.target.value)}
                 placeholder="Brief summary of the article"
+                style={fieldStyle}
+                onFocus={onFocus}
+                onBlur={onBlur}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: '#5a8a6a',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: 7,
+                display: 'block',
+              }}>
+                Featured Image
+              </label>
+              <ImageUpload
+                onUploadComplete={(url: string, storageId: string) => {
+                  setFeaturedImage(url);
+                  setFeaturedImageStorageId(storageId);
+                }}
+                currentImage={featuredImage}
+              />
+            </div>
+
+            <div style={{ marginBottom: 20 }}>
+              <label style={{
+                fontSize: 10,
+                fontWeight: 800,
+                color: '#5a8a6a',
+                letterSpacing: '0.14em',
+                textTransform: 'uppercase',
+                marginBottom: 7,
+                display: 'block',
+              }}>
+                YouTube Link (Optional)
+              </label>
+              <input
+                type="url"
+                value={youtubeUrl}
+                onChange={(e) => setYoutubeUrl(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..."
                 style={fieldStyle}
                 onFocus={onFocus}
                 onBlur={onBlur}

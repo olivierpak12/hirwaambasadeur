@@ -1,15 +1,20 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
+import { verifyPassword, hashPassword } from './passwordUtils';
 
 // Author authentication functions
 export const verifyAuthorLogin = mutation({
   args: { email: v.string(), password: v.string() },
   handler: async (ctx, { email, password }) => {
-    // Find author by email
-    const author = await ctx.db
+    // Normalize email for case-insensitive comparison
+    const normalizedEmail = email.trim().toLowerCase();
+    
+    // Find author by email (case-insensitive)
+    const authors = await ctx.db
       .query('authors')
-      .filter((q) => q.eq(q.field('email'), email))
-      .first();
+      .collect();
+    
+    const author = authors.find(a => a.email.toLowerCase() === normalizedEmail);
     
     if (!author) {
       return { success: false, message: 'Author not found' };
@@ -23,9 +28,15 @@ export const verifyAuthorLogin = mutation({
       return { success: false, message: 'This account is inactive' };
     }
 
-    // For now, simple password check (in production, use proper hashing)
-    // Password for all authors is their email for simplicity
-    const passwordHash = await generateHash(password);
+    // Verify password against stored hash
+    if (!author.password) {
+      return { success: false, message: 'Password not set for this account' };
+    }
+
+    const passwordValid = await verifyPassword(password, author.password);
+    if (!passwordValid) {
+      return { success: false, message: 'Invalid email or password' };
+    }
     
     return {
       success: true,
@@ -50,11 +61,3 @@ export const getAuthorById = query({
     return author;
   },
 });
-
-async function generateHash(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-}

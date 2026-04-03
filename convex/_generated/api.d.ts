@@ -18,6 +18,8 @@ import type * as authors from "../authors.js";
 import type * as categories from "../categories.js";
 import type * as files from "../files.js";
 import type * as jobs from "../jobs.js";
+import type * as passwordUtils from "../passwordUtils.js";
+import type * as sendAuthorCredentials from "../sendAuthorCredentials.js";
 import type * as sendSubscriptionConfirmation from "../sendSubscriptionConfirmation.js";
 import type * as sendVerificationEmail from "../sendVerificationEmail.js";
 import type * as setup from "../setup.js";
@@ -42,6 +44,8 @@ declare const fullApi: ApiFromModules<{
   categories: typeof categories;
   files: typeof files;
   jobs: typeof jobs;
+  passwordUtils: typeof passwordUtils;
+  sendAuthorCredentials: typeof sendAuthorCredentials;
   sendSubscriptionConfirmation: typeof sendSubscriptionConfirmation;
   sendVerificationEmail: typeof sendVerificationEmail;
   setup: typeof setup;

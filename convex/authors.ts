@@ -1,5 +1,6 @@
 import { query, mutation } from './_generated/server';
 import { v } from 'convex/values';
+import { hashPassword } from './passwordUtils';
 
 // Journalist queries and mutations
 // These are now active Convex server functions.
@@ -59,14 +60,19 @@ export const createAuthor = mutation({
   args: {
     name: v.string(),
     email: v.string(),
+    password: v.optional(v.string()),
     bio: v.optional(v.string()),
     photo: v.optional(v.string()),
     photoStorageId: v.optional(v.id('_storage')),
     canCreateArticles: v.optional(v.boolean()),
     canEditPhotos: v.optional(v.boolean()),
+    sendCredentialsEmail: v.optional(v.boolean()),
   },
-  handler: async (ctx, { name, email, bio, photo, photoStorageId, canCreateArticles, canEditPhotos }) => {
+  handler: async (ctx, { name, email, bio, photo, photoStorageId, canCreateArticles, canEditPhotos, password, sendCredentialsEmail }) => {
     const now = new Date().toISOString();
+    
+    // Normalize email
+    const normalizedEmail = email.trim().toLowerCase();
     
     // Resolve photo URL from storage ID if provided
     let finalPhoto = photo || '';
@@ -81,9 +87,16 @@ export const createAuthor = mutation({
       }
     }
     
+    // Hash password if provided
+    let hashedPassword: string | undefined;
+    if (password) {
+      hashedPassword = await hashPassword(password);
+    }
+    
     const authorId = await ctx.db.insert('authors', {
       name,
-      email,
+      email: normalizedEmail,
+      password: hashedPassword,
       bio: bio || '',
       photo: finalPhoto,
       photoStorageId,
@@ -93,7 +106,15 @@ export const createAuthor = mutation({
       createdAt: now,
       updatedAt: now,
     });
-    return authorId;
+    
+    // Return author data including flags for client-side email sending
+    return {
+      authorId,
+      email: normalizedEmail,
+      name,
+      password,
+      sendCredentialsEmail,
+    };
   },
 });
 
